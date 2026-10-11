@@ -18,7 +18,7 @@ Short version: small PRs, someone else reviews, CI green, merge.
 
 ## PR guidelines
 
-- Atomic: one change per PR. If the description needs "and", split it.
+- Each PR has one responsibility. Keep config-only changes separate from implementation; split mixed work into separate PRs.
 - Small enough to review in 10 minutes.
 - Say what changed and why in a couple of lines. Add a screenshot for visual changes.
 - Review within a few hours if you can; unblock people. Leave comments on the code, not the person.

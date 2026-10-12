@@ -7,7 +7,7 @@ Short version: small PRs, someone else reviews, CI green, merge.
 - JavaScript with JSDoc on every exported function.
 - Hungarian notation for variable names: a type prefix, e.g. `strName`, `arrRows`, `objSpec`, `numWidth`.
 - Run Prettier before pushing (`npm run format`). CI fails on unformatted code.
-- Keep to the three modules: `src/parser`, `src/layout`, `src/svg`. Agree on a contract (what goes in, what comes out) before building against it.
+- Keep to the three modules: `src/parser`, `src/layout`, `src/svg`. The frontend lives in `demo/` and only calls `renderChart` from `src/index.js`. Agree on a contract (what goes in, what comes out) before building against it.
 
 ## Workflow
 

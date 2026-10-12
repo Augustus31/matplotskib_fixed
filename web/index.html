@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <title>matplotskib Workbench</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Schibsted+Grotesk:wght@400;500;600;700&display=swap"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="page">
+      <header class="masthead">
+        <h1 class="wordmark">matplotskib</h1>
+        <p class="masthead-note">
+          Pick a file, map its columns to the chart's slots, and inspect what
+          each stage hands to the next.
+        </p>
+      </header>
+
+      <nav class="rail-wrap" aria-label="Pipeline stages">
+        <ol class="rail" id="rail">
+          <li class="rail-step">
+            <button
+              type="button"
+              class="rail-contract"
+              data-tab="raw"
+              id="rail-raw"
+            >
+              <span class="rail-name">raw CSV</span>
+              <span class="rail-meta" data-meta="raw"></span>
+            </button>
+          </li>
+          <li class="rail-step">
+            <div class="rail-module" data-stage="parser">
+              <span class="rail-name">parser</span>
+              <span class="badge" data-badge="parser"></span>
+            </div>
+          </li>
+          <li class="rail-step">
+            <div class="rail-pair">
+              <button
+                type="button"
+                class="rail-contract"
+                data-tab="parse"
+                id="rail-parse"
+              >
+                <span class="rail-name">ParseResult</span>
+                <span class="rail-meta" data-meta="parse"></span>
+              </button>
+              <button
+                type="button"
+                class="rail-contract"
+                data-tab="spec"
+                id="rail-spec"
+              >
+                <span class="rail-name">ChartSpec</span>
+                <span class="rail-meta" data-meta="spec"></span>
+              </button>
+            </div>
+          </li>
+          <li class="rail-step">
+            <div class="rail-module" data-stage="layout">
+              <span class="rail-name">layout</span>
+              <span class="badge" data-badge="layout"></span>
+            </div>
+          </li>
+          <li class="rail-step">
+            <button
+              type="button"
+              class="rail-contract"
+              data-tab="scene"
+              id="rail-scene"
+            >
+              <span class="rail-name">Scene</span>
+              <span class="rail-meta" data-meta="scene"></span>
+            </button>
+          </li>
+          <li class="rail-step">
+            <div class="rail-module" data-stage="svg">
+              <span class="rail-name">svg</span>
+              <span class="badge" data-badge="svg"></span>
+            </div>
+          </li>
+          <li class="rail-step">
+            <button
+              type="button"
+              class="rail-contract"
+              data-tab="svg"
+              id="rail-svg"
+            >
+              <span class="rail-name">&lt;svg&gt;</span>
+              <span class="rail-meta" data-meta="svg"></span>
+            </button>
+          </li>
+        </ol>
+      </nav>
+
+      <main class="workbench">
+        <form class="controls" id="controls" autocomplete="off">
+          <fieldset class="group">
+            <legend>Data</legend>
+            <label class="upload" for="input-file" id="upload-zone">
+              <input type="file" id="input-file" accept=".csv,text/csv" />
+              <span class="upload-title">Upload a CSV</span>
+              <span class="upload-hint"
+                >Or drop one anywhere on the page. It stays in your
+                browser.</span
+              >
+            </label>
+            <p
+              class="upload-status"
+              id="upload-status"
+              role="status"
+              hidden
+            ></p>
+            <div class="dataset-list" id="dataset-list"></div>
+          </fieldset>
+
+          <fieldset class="group">
+            <legend>Chart</legend>
+            <div class="segmented" id="chart-picker"></div>
+          </fieldset>
+
+          <fieldset class="group">
+            <legend>Columns</legend>
+            <p class="hint">
+              Columns of the wrong type for a slot are greyed out.
+            </p>
+            <div class="slot-list" id="slot-list"></div>
+          </fieldset>
+
+          <fieldset class="group">
+            <legend>Title and size</legend>
+            <label class="field" for="input-title">
+              <span>Title</span>
+              <input type="text" id="input-title" maxlength="80" />
+            </label>
+            <div class="field-row">
+              <label class="field" for="input-width">
+                <span>Width</span>
+                <input
+                  type="number"
+                  id="input-width"
+                  min="240"
+                  max="1200"
+                  step="20"
+                />
+              </label>
+              <label class="field" for="input-height">
+                <span>Height</span>
+                <input
+                  type="number"
+                  id="input-height"
+                  min="180"
+                  max="900"
+                  step="20"
+                />
+              </label>
+            </div>
+          </fieldset>
+        </form>
+
+        <div class="output">
+          <section class="stage" aria-label="Chart">
+            <div class="stage-canvas" id="stage-canvas"></div>
+            <ul class="legend" id="legend" hidden></ul>
+            <div class="tooltip" id="tooltip" role="status" hidden></div>
+          </section>
+
+          <section class="inspector" aria-labelledby="inspector-title">
+            <header class="inspector-head">
+              <div>
+                <h2 id="inspector-title"></h2>
+                <p class="inspector-role" id="inspector-role"></p>
+              </div>
+              <button type="button" class="copy" id="copy-button">Copy</button>
+            </header>
+            <div class="inspector-body" id="inspector-body" tabindex="0"></div>
+          </section>
+        </div>
+      </main>
+    </div>
+    <script type="module" src="main.js"></script>
+  </body>
+</html>

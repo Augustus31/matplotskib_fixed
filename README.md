@@ -4,6 +4,7 @@ Small browser library for scatterplots and line graphs, drawn as SVG. CSE 210 wa
 
 Structure: `src/parser` (raw input to canonical data), `src/layout` (data + chart spec to scene), `src/svg` (scene to SVG). See CONTRIBUTING.md.
 
+
 ## Pipeline
 
 ```
@@ -27,3 +28,5 @@ Types for the parser, layout and svg steps live in `src/contracts.js`. Nothing t
 - Controls: fixture, chart type, one column picker per slot (only columns whose type the slot accepts), title.
 - If `arrErrors` is not empty, show the errors instead of the chart.
 - Style with CSS, using the `class` that layout sets on each scene item (`strClass`).
+
+Try it in the browser: run `npx serve .` and open `/web/`. See web/README.md.

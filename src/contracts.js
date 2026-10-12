@@ -49,6 +49,15 @@ export const DEFAULTS = Object.freeze({
  */
 
 /**
+ * Pixel position from data value. Layout computes these once and hands them to the chart,
+ * so axes and marks agree. Both return absolute SVG coordinates with margins already
+ * applied, so charts put the result straight into numX / numY.
+ * @typedef {object} Scales
+ * @property {(value: string | number) => number} fnX takes the number for a number column, or the category string for a category column; a category maps to the center of its band
+ * @property {(value: number) => number} fnY flipped: a bigger value gives a smaller y, since SVG y grows downward
+ */
+
+/**
  * What the caller asks for. strChart is a registry key, not a fixed list.
  * @typedef {object} ChartSpec
  * @property {string} strChart registry key such as "scatter" or "line"
@@ -102,6 +111,7 @@ export const DEFAULTS = Object.freeze({
  * @typedef {object} ChartSlot
  * @property {string} strSlot slot name, for example "x" or "y"
  * @property {ColumnType[]} arrTypes column types the slot accepts
+ * @property {boolean} [bOptional] the spec may leave this slot out; for example line's "series" slot (fixtures/README.md)
  */
 
 /**
@@ -115,10 +125,10 @@ export const DEFAULTS = Object.freeze({
  *     { strSlot: "x", arrTypes: [COLUMN_TYPES.NUMBER] },
  *     { strSlot: "y", arrTypes: [COLUMN_TYPES.NUMBER] },
  *   ],
- *   fnBuild: (objParse, objSpec, objFrame) => [],
+ *   fnBuild: (objParse, objSpec, objFrame, objScales) => [],
  * });
  * @typedef {object} ChartType
  * @property {string} strName registry key
  * @property {ChartSlot[]} arrSlots
- * @property {(objParse: ParseResult, objSpec: ChartSpec, objFrame: Frame) => SceneItem[]} fnBuild
+ * @property {(objParse: ParseResult, objSpec: ChartSpec, objFrame: Frame, objScales: Scales) => SceneItem[]} fnBuild
  */

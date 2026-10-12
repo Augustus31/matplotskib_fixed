@@ -24,7 +24,7 @@ test("renders a circle", () => {
   );
 });
 
-test("renders a polyline with no fill", () => {
+test("renders a polyline with no fill and a default currentColor stroke", () => {
   const objScene = {
     numWidth: 600,
     numHeight: 400,
@@ -42,7 +42,7 @@ test("renders a polyline with no fill", () => {
   };
   assert.equal(
     renderSvg(objScene),
-    `${STR_OPEN}<polyline points="40,360 300,200 560,80" fill="none" class="line"/></svg>`,
+    `${STR_OPEN}<polyline points="40,360 300,200 560,80" fill="none" stroke="currentColor" class="line"/></svg>`,
   );
 });
 

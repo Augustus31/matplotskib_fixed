@@ -49,7 +49,8 @@ function renderCircle(objCircle) {
 }
 
 /**
- * Polylines get fill="none" because SVG fills them black by default. CSS can still override it.
+ * Polylines have no fill and default to the current text color for their stroke.
+ * CSS can override both presentation attributes.
  * @param {ScenePolyline} objPolyline
  * @returns {string}
  */
@@ -57,7 +58,7 @@ function renderPolyline(objPolyline) {
   const strPoints = objPolyline.arrPoints
     .map(([numX, numY]) => `${formatNumber(numX)},${formatNumber(numY)}`)
     .join(" ");
-  return `<polyline points="${strPoints}" fill="none" class="${escapeXml(objPolyline.strClass)}"/>`;
+  return `<polyline points="${strPoints}" fill="none" stroke="currentColor" class="${escapeXml(objPolyline.strClass)}"/>`;
 }
 
 /**

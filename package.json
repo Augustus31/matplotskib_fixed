@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "description": "Small browser library for bar and line graphs (SVG output).",
+  "description": "Small browser library for scatterplots and line graphs (SVG output).",
   "scripts": {
     "format": "prettier --write .",
     "format:check": "prettier --check .",

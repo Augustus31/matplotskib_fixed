@@ -9,7 +9,7 @@ export const COLUMN_TYPES = Object.freeze({
 
 /** Kinds of drawable item in a Scene. */
 export const SCENE_KINDS = Object.freeze({
-  RECT: "rect",
+  CIRCLE: "circle",
   POLYLINE: "polyline",
   TEXT: "text",
 });
@@ -51,8 +51,8 @@ export const DEFAULTS = Object.freeze({
 /**
  * What the caller asks for. strChart is a registry key, not a fixed list.
  * @typedef {object} ChartSpec
- * @property {string} strChart registry key such as "bar" or "line"
- * @property {Object<string, string>} objFields chart slot name to column name, for example {x: "name", y: "score"}
+ * @property {string} strChart registry key such as "scatter" or "line"
+ * @property {Object<string, string>} objFields chart slot name to column name, for example {x: "height", y: "weight"}
  * @property {string} [strTitle]
  * @property {number} [numWidth]
  * @property {number} [numHeight]
@@ -60,12 +60,11 @@ export const DEFAULTS = Object.freeze({
  */
 
 /**
- * @typedef {object} SceneRect
- * @property {"rect"} strKind
- * @property {number} numX
- * @property {number} numY
- * @property {number} numW
- * @property {number} numH
+ * @typedef {object} SceneCircle
+ * @property {"circle"} strKind
+ * @property {number} numX center x
+ * @property {number} numY center y
+ * @property {number} numR radius in px
  * @property {string} strClass styling hook, left to CSS
  */
 
@@ -87,7 +86,7 @@ export const DEFAULTS = Object.freeze({
  */
 
 /**
- * @typedef {SceneRect | ScenePolyline | SceneText} SceneItem
+ * @typedef {SceneCircle | ScenePolyline | SceneText} SceneItem
  */
 
 /**
@@ -108,6 +107,16 @@ export const DEFAULTS = Object.freeze({
 /**
  * A pluggable chart type. Adding a chart means adding one of these and registering it.
  * fnBuild returns only the chart's own marks. Axes, ticks and titles stay in layout.
+ * Warmup charts: "scatter" takes number x and number y; "line" takes category or number x and number y.
+ * @example
+ * registerChart({
+ *   strName: "scatter",
+ *   arrSlots: [
+ *     { strSlot: "x", arrTypes: [COLUMN_TYPES.NUMBER] },
+ *     { strSlot: "y", arrTypes: [COLUMN_TYPES.NUMBER] },
+ *   ],
+ *   fnBuild: (objParse, objSpec, objFrame) => [],
+ * });
  * @typedef {object} ChartType
  * @property {string} strName registry key
  * @property {ChartSlot[]} arrSlots

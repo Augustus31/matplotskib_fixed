@@ -647,12 +647,6 @@ input:hover {
   fill: var(--ink);
 }
 
-.stage-canvas svg .series-label {
-  font-size: 12px;
-  font-weight: 500;
-  fill: var(--ink);
-}
-
 .series-0 {
   --series: var(--s1);
 }

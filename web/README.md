@@ -12,22 +12,17 @@ npx serve .
 
 Then open `/web/` on the port it prints. `python3 -m http.server` from the repo root works too.
 
-## What is real and what is mocked
+## Where each stage comes from
 
-| stage       | status | where                                        | replaced by |
-| ----------- | ------ | -------------------------------------------- | ----------- |
-| parser      | real   | `src/parser/index.js` (`parseCsv`)           |             |
-| svg         | real   | `src/svg/index.js` (`renderSvg`)             |             |
-| layout      | mock   | `web/mocks/layout.js`, `web/mocks/scales.js` | #14, #15    |
-| chart types | mock   | `web/mocks/charts.js` (`scatter`, `line`)    | #16, #17    |
+| stage   | where                              |
+| ------- | ---------------------------------- |
+| parser  | `src/parser/index.js` (`parseCsv`) |
+| layout  | `src/layout/index.js` (`fnLayout`) |
+| scatter | `src/charts/scatter.js`            |
+| line    | `src/charts/line.js`               |
+| svg     | `src/svg/index.js` (`renderSvg`)   |
 
-The mocks follow `src/contracts.js` and the decisions in #13: layout computes the scales once and passes `{ fnX, fnY }` to `fnBuild` as a 4th argument, and an optional slot has `bOptional: true`. The mock charts live in their own map, not the real registry, so the real chart modules can register the same names.
-
-When a real module lands:
-
-1. Change its line in `web/pipeline.js`. That file is the only one that touches the library.
-2. Set its entry in `OBJ_STAGE_STATUS` to `"live"` so the rail badge updates.
-3. Delete the mock file it replaces.
+`web/pipeline.js` is the only file that touches the library. The page calls each stage itself, rather than `renderChart`, so the inspector can show every stage's output.
 
 ## Data
 
@@ -45,13 +40,10 @@ Layout and chart types set `strClass`; `style.css` gives them color.
 
 - Any `circle` or `polyline` is drawn as a data mark in series color, unless its class is `grid`, `axis` or `tick`.
 - `series-0` to `series-3` pick the series color. Without one, a mark uses the first color.
-- Text classes: `title`, `axis-label`, `tick-label`, `series-label`. Other text gets the default label style.
+- Text classes: `title`, `axis-label`, `tick-label`. Other text gets the default label style.
 
 ## Open questions for the module owners
 
-1. **Series classes (#17).** The legend and line colors only match if the line chart puts `series-0`, `series-1`, … on each series' marks, in order of first appearance.
-2. **Layout class names (#15).** Gridlines, axes and ticks need the classes `grid`, `axis` and `tick`. Otherwise the page draws them as data lines.
-3. **Tooltips.** Hover needs to know which row a circle came from. The mock adds `numRowIndex` to `SceneCircle`, and `renderSvg` ignores it. Without it, tooltips still work for scatter (one circle per row, in row order) but not for line points.
-4. **List charts.** The registry has no list call, so the chart picker hard-codes `["scatter", "line"]` in `web/pipeline.js`.
-5. **Entry point (#18, #11).** #11 suggests the frontend calls only `renderChart`. The inspector shows each stage's output, so it needs `parseCsv`, `fnLayout` and `renderSvg` separately. #18 says `renderChart` throws, while #11 says it returns `{ strSvg, arrErrors }`. These need to agree.
-6. **Text.** `SceneText` has no rotation or vertical alignment. The y-axis label sits horizontally above the axis, and labels are nudged down 4px to sit centered.
+1. **Line tooltips.** Hover needs a circle and the row it came from. The line chart draws only polylines, so line charts have no point dots and no tooltips. Scatter tooltips work because scatter draws one circle per row, in row order. Line tooltips would need circles from `src/charts/line.js` and a row index on `SceneCircle` (`numRowIndex`, which `renderSvg` would ignore).
+2. **List charts.** The registry has no list call, so the chart picker hard-codes `["scatter", "line"]` in `web/pipeline.js`.
+3. **Text.** `SceneText` has no rotation or vertical alignment. The y-axis label sits horizontally above the axis, and labels are nudged down 4px to sit centered.

@@ -2,8 +2,7 @@
 // renderChart, so the inspector can show every stage's output.
 
 import "../src/charts/scatter.js";
-// TODO(#17): import "../src/charts/line.js" instead, and delete web/mocks/line.js.
-import "./mocks/line.js";
+import "../src/charts/line.js";
 
 export { parseCsv as parse } from "../src/parser/index.js";
 export { fnLayout as layout } from "../src/layout/index.js";

@@ -12,17 +12,17 @@ npx serve .
 
 Then open `/web/` on the port it prints. `python3 -m http.server` from the repo root works too.
 
-## What is real and what is mocked
+## Where each stage comes from
 
-| stage   | status | where                                                      |
-| ------- | ------ | ---------------------------------------------------------- |
-| parser  | real   | `src/parser/index.js` (`parseCsv`)                         |
-| layout  | real   | `src/layout/index.js` (`fnLayout`)                         |
-| scatter | real   | `src/charts/scatter.js`                                    |
-| line    | mock   | `web/mocks/line.js`, registered in the real registry (#17) |
-| svg     | real   | `src/svg/index.js` (`renderSvg`)                           |
+| stage   | where                              |
+| ------- | ---------------------------------- |
+| parser  | `src/parser/index.js` (`parseCsv`) |
+| layout  | `src/layout/index.js` (`fnLayout`) |
+| scatter | `src/charts/scatter.js`            |
+| line    | `src/charts/line.js`               |
+| svg     | `src/svg/index.js` (`renderSvg`)   |
 
-`web/pipeline.js` is the only file that touches the library. The page calls each stage itself, rather than `renderChart`, so the inspector can show every stage's output. When #17 lands, import `src/charts/line.js` there and delete `web/mocks/line.js`.
+`web/pipeline.js` is the only file that touches the library. The page calls each stage itself, rather than `renderChart`, so the inspector can show every stage's output.
 
 ## Data
 
@@ -44,7 +44,6 @@ Layout and chart types set `strClass`; `style.css` gives them color.
 
 ## Open questions for the module owners
 
-1. **Series classes (#17).** The legend and line colors only match if the line chart puts `series-0`, `series-1`, … on each series' marks, in order of first appearance.
-2. **Tooltips.** Hover needs to know which row a circle came from. The mock line adds `numRowIndex` to `SceneCircle`, and `renderSvg` ignores it. Without it, tooltips still work for scatter (one circle per row, in row order) but not for line points.
-3. **List charts.** The registry has no list call, so the chart picker hard-codes `["scatter", "line"]` in `web/pipeline.js`.
-4. **Text.** `SceneText` has no rotation or vertical alignment. The y-axis label sits horizontally above the axis, and labels are nudged down 4px to sit centered.
+1. **Line tooltips.** Hover needs a circle and the row it came from. The line chart draws only polylines, so line charts have no point dots and no tooltips. Scatter tooltips work because scatter draws one circle per row, in row order. Line tooltips would need circles from `src/charts/line.js` and a row index on `SceneCircle` (`numRowIndex`, which `renderSvg` would ignore).
+2. **List charts.** The registry has no list call, so the chart picker hard-codes `["scatter", "line"]` in `web/pipeline.js`.
+3. **Text.** `SceneText` has no rotation or vertical alignment. The y-axis label sits horizontally above the axis, and labels are nudged down 4px to sit centered.

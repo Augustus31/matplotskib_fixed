@@ -785,7 +785,7 @@ function specView(objSpec) {
   return `<pre class="code">${escapeHtml(JSON.stringify(objSpec, null, 2))}</pre>
     <h3 class="sub">How the page calls the library</h3>
     <pre class="code">${escapeHtml(strCall)}</pre>
-    <p class="muted">fnLayout is a mock in web/mocks until src/layout lands (#14, #15). The page will switch to renderChart from src/index.js if the team settles on that as the only entry point (#18).</p>`;
+    <p class="muted">The page calls each stage itself so the inspector can show every output. Other code uses renderChart from src/index.js (#18), which runs all three.</p>`;
 }
 
 /** @param {Scene} objScene */

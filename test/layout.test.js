@@ -292,3 +292,37 @@ test("decimal data keeps its decimal ticks", () => {
   });
   assert.ok(textsWithClass(objScene.arrItems, "tick-label").includes("0.2"));
 });
+
+test("the left margin fits long y tick labels", () => {
+  // From #30: 7-digit values used to run off the left edge.
+  const objScene = fnLayout(
+    parseCsv("month,revenue\n1,1250000\n2,1730000\n3,990000"),
+    { strChart: "stub", objFields: { x: "month", y: "revenue" } },
+  );
+  const arrYLabels = withClass(objScene.arrItems, "tick-label").filter(
+    (objItem) =>
+      /** @type {{strAnchor: string}} */ (objItem).strAnchor === "end",
+  );
+  assert.ok(
+    arrYLabels.some(
+      (objItem) =>
+        /** @type {{strText: string}} */ (objItem).strText === "1800000",
+    ),
+  );
+  for (const objItem of arrYLabels) {
+    const { numX, strText } = /** @type {{numX: number, strText: string}} */ (
+      objItem
+    );
+    // Labels are right-aligned at numX; about 7px per character must fit left of it.
+    assert.ok(numX - strText.length * 7 >= 0, `${strText} is cut off`);
+  }
+});
+
+test("short y tick labels keep the default left margin", () => {
+  arrStubCalls.length = 0;
+  fnLayout(objBugs, { strChart: "stub", objFields: { x: "day", y: "bugs" } });
+  assert.equal(
+    arrStubCalls[0].objFrame.objMargin.numLeft,
+    DEFAULTS.numMargin + 12,
+  );
+});

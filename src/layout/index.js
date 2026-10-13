@@ -19,6 +19,12 @@ const NUM_TICK_LENGTH = 5;
 const NUM_LABEL_ROOM = 12;
 // Room for the title above the plot.
 const NUM_TITLE_ROOM = 24;
+// Tick labels are drawn at about 12px; a digit is about 7px wide. Used to size the left
+// margin so long y labels fit.
+const NUM_CHAR_WIDTH = 7;
+// Gap between a y tick label and its tick mark, and between the label and the left edge.
+const NUM_LABEL_GAP = 3;
+const NUM_EDGE_GAP = 4;
 // SceneText has no vertical alignment, so labels move down by about a third of the font size
 // to sit centered on their tick.
 const NUM_TEXT_NUDGE = 4;
@@ -64,18 +70,26 @@ function validate(objParse, objSpec) {
 
 /**
  * Frame for a spec: its size, or the defaults, and margins with room for labels and title.
+ * The left margin grows to fit the longest y tick label, so big numbers aren't cut off.
  * Throws when the size leaves no room to plot inside the margins.
  * @param {ChartSpec} objSpec
+ * @param {number} numYLabelChars characters in the longest y tick label
  * @returns {Frame}
  */
-function makeFrame(objSpec) {
+function makeFrame(objSpec, numYLabelChars) {
   const numWidth = objSpec.numWidth ?? DEFAULTS.numWidth;
   const numHeight = objSpec.numHeight ?? DEFAULTS.numHeight;
   const objMargin = {
     numTop: DEFAULTS.numMargin + (objSpec.strTitle ? NUM_TITLE_ROOM : 0),
     numRight: DEFAULTS.numMargin,
     numBottom: DEFAULTS.numMargin + NUM_LABEL_ROOM,
-    numLeft: DEFAULTS.numMargin + NUM_LABEL_ROOM,
+    numLeft: Math.max(
+      DEFAULTS.numMargin + NUM_LABEL_ROOM,
+      NUM_EDGE_GAP +
+        numYLabelChars * NUM_CHAR_WIDTH +
+        NUM_LABEL_GAP +
+        NUM_TICK_LENGTH,
+    ),
   };
   const numMinWidth = objMargin.numLeft + objMargin.numRight;
   const numMinHeight = objMargin.numTop + objMargin.numBottom;
@@ -184,7 +198,7 @@ function buildGuides(objParse, objSpec, objFrame, objScales) {
       line(numLeft, numY, numRight, numY, "grid"),
       line(numLeft - NUM_TICK_LENGTH, numY, numLeft, numY, "tick"),
       text(
-        numLeft - NUM_TICK_LENGTH - 3,
+        numLeft - NUM_TICK_LENGTH - NUM_LABEL_GAP,
         numY + NUM_TEXT_NUDGE,
         String(numTick),
         "end",
@@ -241,7 +255,12 @@ function buildGuides(objParse, objSpec, objFrame, objScales) {
  */
 export function fnLayout(objParse, objSpec) {
   const objChart = validate(objParse, objSpec);
-  const objFrame = makeFrame(objSpec);
+  const numYLabelChars = Math.max(
+    ...ticksFor(objParse, objSpec.objFields.y).map(
+      (numTick) => String(numTick).length,
+    ),
+  );
+  const objFrame = makeFrame(objSpec, numYLabelChars);
   const objScales = fnMakeScales(objParse, objSpec, objFrame);
   return {
     numWidth: objFrame.numWidth,

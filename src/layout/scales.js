@@ -8,6 +8,10 @@ import { COLUMN_TYPES } from "../contracts.js";
 /** @typedef {import("../contracts.js").Frame} Frame */
 /** @typedef {import("../contracts.js").Scales} Scales */
 
+// Gap between the outer ticks and the plot edges, as a share of the plot size, so points at
+// the data's min or max don't sit on the axis lines.
+const NUM_EDGE_PAD = 0.05;
+
 // Slack for float division, so 0.3 / 0.1 counts as 3 and not 2.9999999999999996.
 const NUM_EPSILON = 1e-9;
 
@@ -143,7 +147,8 @@ function columnForSlot(objParse, objSpec, strSlot) {
  *
  * - A number column gets a linear scale whose domain is exactly the first to last value of
  *   fnMakeTicks(min, max) for that column. Layout gets matching axis ticks by calling
- *   fnMakeTicks with the same min and max.
+ *   fnMakeTicks with the same min and max. The outer ticks sit 5% of the plot size inside
+ *   the plot edges, so edge points don't land on the axes.
  * - A category x gets evenly spaced bands in order of first appearance; fnX returns the band
  *   center and throws on a category that is not in the data.
  * - y must be a number column, and fnY is flipped so bigger values sit higher.
@@ -172,11 +177,14 @@ export function fnMakeScales(objParse, objSpec, objFrame) {
     );
   }
 
+  // Bands already keep a half band between the outer categories and the edges.
+  const numPadX = (numRight - numLeft) * NUM_EDGE_PAD;
+  const numPadY = (numBottom - numTop) * NUM_EDGE_PAD;
   return {
     fnX:
       objX.strType === COLUMN_TYPES.CATEGORY
         ? bandScale(objX.arrValues, numLeft, numRight)
-        : linearScale(objX.arrValues, numLeft, numRight),
-    fnY: linearScale(objY.arrValues, numBottom, numTop),
+        : linearScale(objX.arrValues, numLeft + numPadX, numRight - numPadX),
+    fnY: linearScale(objY.arrValues, numBottom - numPadY, numTop + numPadY),
   };
 }

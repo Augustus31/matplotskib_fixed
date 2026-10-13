@@ -5,7 +5,8 @@ import { COLUMN_TYPES } from "../src/contracts.js";
 import { fnMakeScales, fnMakeTicks } from "../src/layout/scales.js";
 import { parseCsv } from "../src/parser/index.js";
 
-// 600 x 400 with 40px margins: x runs 40..560, y runs 360 (low) up to 40 (high).
+// 600 x 400 with 40px margins: the plot runs x 40..560 and y 360 (low) up to 40 (high).
+// Number scales keep a 5% gap inside that, so the outer ticks land at x 66 and 534, y 344 and 56.
 const OBJ_FRAME = {
   numWidth: 600,
   numHeight: 400,
@@ -107,15 +108,15 @@ test("number scales map the tick span onto the plot area, with y flipped", () =>
     OBJ_FRAME,
   );
 
-  assert.equal(objScales.fnX(0), 40);
+  assert.equal(objScales.fnX(0), 66);
   assert.equal(objScales.fnX(5), 300);
-  assert.equal(objScales.fnX(10), 560);
-  assert.equal(objScales.fnY(0), 360);
+  assert.equal(objScales.fnX(10), 534);
+  assert.equal(objScales.fnY(0), 344);
   assert.equal(objScales.fnY(50), 200);
-  assert.equal(objScales.fnY(100), 40);
+  assert.equal(objScales.fnY(100), 56);
 });
 
-test("the first and last tick land on the plot edges", () => {
+test("the first and last tick sit 5% inside the plot edges", () => {
   const objParse = numberParse([
     [3, 12],
     [97, 41],
@@ -124,10 +125,10 @@ test("the first and last tick land on the plot edges", () => {
   const arrXTicks = fnMakeTicks(3, 97);
   const arrYTicks = fnMakeTicks(12, 41);
 
-  assertClose(objScales.fnX(arrXTicks[0]), 40);
-  assertClose(objScales.fnX(arrXTicks[arrXTicks.length - 1]), 560);
-  assertClose(objScales.fnY(arrYTicks[0]), 360);
-  assertClose(objScales.fnY(arrYTicks[arrYTicks.length - 1]), 40);
+  assertClose(objScales.fnX(arrXTicks[0]), 66);
+  assertClose(objScales.fnX(arrXTicks[arrXTicks.length - 1]), 534);
+  assertClose(objScales.fnY(arrYTicks[0]), 344);
+  assertClose(objScales.fnY(arrYTicks[arrYTicks.length - 1]), 56);
 });
 
 test("number scales handle negative values", () => {
@@ -141,11 +142,11 @@ test("number scales handle negative values", () => {
   );
 
   // x domain is -4..8 and y domain is -50..-10.
-  assert.equal(objScales.fnX(-4), 40);
+  assert.equal(objScales.fnX(-4), 66);
   assert.equal(objScales.fnX(2), 300);
-  assert.equal(objScales.fnX(8), 560);
-  assert.equal(objScales.fnY(-50), 360);
-  assert.equal(objScales.fnY(-10), 40);
+  assert.equal(objScales.fnX(8), 534);
+  assert.equal(objScales.fnY(-50), 344);
+  assert.equal(objScales.fnY(-10), 56);
 });
 
 test("a single row sits in the middle of the plot", () => {
@@ -187,8 +188,8 @@ test("scales follow the slot mapping, not the column names", () => {
   const objSwapped = { strChart: "scatter", objFields: { x: "y", y: "x" } };
   const objScales = fnMakeScales(objParse, objSwapped, OBJ_FRAME);
 
-  assert.equal(objScales.fnX(100), 560);
-  assert.equal(objScales.fnY(10), 40);
+  assert.equal(objScales.fnX(100), 534);
+  assert.equal(objScales.fnY(10), 56);
 });
 
 test("scales reject missing data with a plain message", () => {
@@ -238,5 +239,23 @@ test("every fixture point lands inside the plot area", () => {
     const numY = objScales.fnY(Number(objRow.bugs));
     assert.ok(numX >= 40 && numX <= 560, `x ${numX}`);
     assert.ok(numY >= 40 && numY <= 360, `y ${numY}`);
+  }
+});
+
+test("the data's min and max land inside the plot, not on its edges", () => {
+  // From #32: in the fixture, day 1 sat on the y axis and the fewest bugs on the x axis.
+  const objScales = fnMakeScales(
+    numberParse([
+      [1, 2],
+      [5, 12],
+    ]),
+    OBJ_SPEC,
+    OBJ_FRAME,
+  );
+  for (const numX of [objScales.fnX(1), objScales.fnX(5)]) {
+    assert.ok(numX > 40 && numX < 560, `x ${numX} is on an edge`);
+  }
+  for (const numY of [objScales.fnY(2), objScales.fnY(12)]) {
+    assert.ok(numY > 40 && numY < 360, `y ${numY} is on an edge`);
   }
 });

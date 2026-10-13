@@ -9,12 +9,14 @@
     "format:check": "prettier --check .",
     "lint": "eslint .",
     "typecheck": "tsc -p tsconfig.json",
-    "test": "node --test"
+    "test": "node --test",
+    "test:e2e": "node --test e2e/page.e2e.js"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",
     "eslint": "^9.0.0",
     "globals": "^17.13.0",
+    "playwright": "^1.63.0",
     "prettier": "^3.0.0",
     "typescript": "^5.0.0"
   }

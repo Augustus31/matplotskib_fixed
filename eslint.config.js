@@ -12,7 +12,7 @@ export default [
     },
   },
   {
-    files: ["test/**/*.js", "eslint.config.js"],
+    files: ["test/**/*.js", "e2e/**/*.js", "eslint.config.js"],
     languageOptions: { globals: globals.node },
   },
 ];

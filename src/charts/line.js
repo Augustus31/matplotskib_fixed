@@ -28,7 +28,8 @@ function groupRows(objParse, strSeriesField) {
 }
 
 /**
- * build one polyline per series, preserving input row order.
+ * Build one polyline per series. Numeric x values are connected in ascending
+ * order; category values keep their order in the input file.
  * @param {import("../contracts.js").ParseResult} objParse
  * @param {import("../contracts.js").ChartSpec} objSpec
  * @param {import("../contracts.js").Frame} _objFrame
@@ -40,9 +41,21 @@ export function buildLine(objParse, objSpec, _objFrame, objScales) {
   const strYField = objSpec.objFields.y;
   const strSeriesField = objSpec.objFields.series;
   const arrGroups = groupRows(objParse, strSeriesField);
+  const boolNumericX = objParse.arrColumns.some(
+    (objColumn) =>
+      objColumn.strField === strXField &&
+      objColumn.strType === COLUMN_TYPES.NUMBER,
+  );
 
   return arrGroups.map((arrRows, numSeries) => {
-    const arrPoints = arrRows.map((objRow) => [
+    const arrOrderedRows = boolNumericX
+      ? [...arrRows].sort((objA, objB) => {
+          const numA = Number(objA[strXField]);
+          const numB = Number(objB[strXField]);
+          return numA < numB ? -1 : numA > numB ? 1 : 0;
+        })
+      : arrRows;
+    const arrPoints = arrOrderedRows.map((objRow) => [
       objScales.fnX(objRow[strXField]),
       objScales.fnY(/** @type {number} */ (objRow[strYField])),
     ]);

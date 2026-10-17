@@ -44,7 +44,7 @@ const objSpec = {
   },
 };
 
-test("builds one line in row order when series is omitted", () => {
+test("connects numeric x values in ascending order when series is omitted", () => {
   const arrItems = getChart("line").fnBuild(
     objParse,
     objSpec,
@@ -56,9 +56,9 @@ test("builds one line in row order when series is omitted", () => {
   assert.equal(arrItems[0].strKind, "polyline");
 
   assert.deepEqual(arrItems[0].arrPoints, [
-    [30, 95],
     [10, 96],
     [20, 93],
+    [30, 95],
   ]);
 });
 
@@ -90,10 +90,10 @@ const objSeriesParse = {
     { strField: "bugs", strType: "number" },
   ],
   arrRows: [
-    { agent: "B", day: 1, bugs: 2 },
-    { agent: "A", day: 1, bugs: 4 },
     { agent: "B", day: 2, bugs: 3 },
     { agent: "A", day: 2, bugs: 7 },
+    { agent: "B", day: 1, bugs: 2 },
+    { agent: "A", day: 1, bugs: 4 },
   ],
   arrErrors: [],
 };
@@ -108,7 +108,7 @@ const objSeriesSpec = {
   },
 };
 
-test("builds one line per series in first-appearance order", () => {
+test("sorts numeric x within each series and keeps series order", () => {
   const arrItems = getChart("line").fnBuild(
     objSeriesParse,
     objSeriesSpec,
@@ -144,9 +144,9 @@ test("maps category x values through the x scale", () => {
       { strField: "minutes", strType: "number" },
     ],
     arrRows: [
+      { weekday: "Wed", minutes: 12 },
       { weekday: "Mon", minutes: 10 },
       { weekday: "Tue", minutes: 14 },
-      { weekday: "Wed", minutes: 12 },
     ],
     arrErrors: [],
   };
@@ -161,9 +161,9 @@ test("maps category x values through the x scale", () => {
   };
 
   const objPositions = {
-    Mon: 100,
-    Tue: 300,
-    Wed: 500,
+    Wed: 100,
+    Mon: 300,
+    Tue: 500,
   };
 
   /** @type {import("../src/contracts.js").Scales} */
@@ -183,9 +183,9 @@ test("maps category x values through the x scale", () => {
     {
       strKind: "polyline",
       arrPoints: [
-        [100, 190],
-        [300, 186],
-        [500, 188],
+        [100, 188],
+        [300, 190],
+        [500, 186],
       ],
       strClass: "line series-0",
     },

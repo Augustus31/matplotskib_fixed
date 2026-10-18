@@ -28,8 +28,9 @@ function groupRows(objParse, strSeriesField) {
 }
 
 /**
- * Build one polyline per series. Numeric x values are connected in ascending
- * order; category values keep their order in the input file.
+ * Build one polyline per series. Points are sorted by their x pixel position,
+ * so each line runs left to right in axis order for both number and category x.
+ * Points with the same x keep their input order.
  * @param {import("../contracts.js").ParseResult} objParse
  * @param {import("../contracts.js").ChartSpec} objSpec
  * @param {import("../contracts.js").Frame} _objFrame
@@ -41,24 +42,19 @@ export function buildLine(objParse, objSpec, _objFrame, objScales) {
   const strYField = objSpec.objFields.y;
   const strSeriesField = objSpec.objFields.series;
   const arrGroups = groupRows(objParse, strSeriesField);
-  const boolNumericX = objParse.arrColumns.some(
-    (objColumn) =>
-      objColumn.strField === strXField &&
-      objColumn.strType === COLUMN_TYPES.NUMBER,
-  );
+  // const boolNumericX = objParse.arrColumns.some(
+  //   (objColumn) =>
+  //     objColumn.strField === strXField &&
+  //     objColumn.strType === COLUMN_TYPES.NUMBER,
+  // );
 
   return arrGroups.map((arrRows, numSeries) => {
-    const arrOrderedRows = boolNumericX
-      ? [...arrRows].sort((objA, objB) => {
-          const numA = Number(objA[strXField]);
-          const numB = Number(objB[strXField]);
-          return numA < numB ? -1 : numA > numB ? 1 : 0;
-        })
-      : arrRows;
-    const arrPoints = arrOrderedRows.map((objRow) => [
-      objScales.fnX(objRow[strXField]),
-      objScales.fnY(/** @type {number} */ (objRow[strYField])),
-    ]);
+    const arrPoints = arrRows
+      .map((objRow) => [
+        objScales.fnX(objRow[strXField]),
+        objScales.fnY(/** @type {number} */ (objRow[strYField])),
+      ])
+      .sort((arrA, arrB) => arrA[0] - arrB[0]);
     return {
       strKind: SCENE_KINDS.POLYLINE,
       arrPoints,

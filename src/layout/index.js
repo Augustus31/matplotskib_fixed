@@ -60,6 +60,15 @@ function validate(objParse, objSpec) {
       throw new Error(`no column named "${strField}"`);
     }
     if (!objSlot.arrTypes.includes(objColumn.strType)) {
+      if (
+        (objChart.strName === "line" || objChart.strName === "scatter") &&
+        (objSlot.strSlot === "x" || objSlot.strSlot === "y") &&
+        objColumn.strType === COLUMN_TYPES.CATEGORY
+      ) {
+        throw new Error(
+          "X and Y axes require numeric columns. Category columns can only be used for series.",
+        );
+      }
       throw new Error(
         `"${objSlot.strSlot}" takes ${objSlot.arrTypes.join(" or ")}, but ${strField} is ${objColumn.strType}`,
       );

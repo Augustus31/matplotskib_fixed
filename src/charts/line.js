@@ -70,7 +70,7 @@ export function buildLine(objParse, objSpec, _objFrame, objScales) {
 export const objLine = {
   strName: "line",
   arrSlots: [
-    { strSlot: "x", arrTypes: [COLUMN_TYPES.CATEGORY, COLUMN_TYPES.NUMBER] },
+    { strSlot: "x", arrTypes: [COLUMN_TYPES.NUMBER] },
     { strSlot: "y", arrTypes: [COLUMN_TYPES.NUMBER] },
     { strSlot: "series", arrTypes: [COLUMN_TYPES.CATEGORY], bOptional: true },
   ],

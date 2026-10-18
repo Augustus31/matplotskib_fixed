@@ -39,3 +39,21 @@ test("throws layout's message when the CSV has errors", () => {
     /the data has errors: row 3: expected 2 fields, found 1/,
   );
 });
+
+for (const strChart of ["line", "scatter"]) {
+  for (const strAxis of ["x", "y"]) {
+    test(`${strChart} rejects category ${strAxis} through public rendering`, () => {
+      assert.throws(
+        () =>
+          renderChart(STR_BUGS, {
+            strChart,
+            objFields: { x: "day", y: "bugs", [strAxis]: "agent" },
+          }),
+        {
+          message:
+            "X and Y axes require numeric columns. Category columns can only be used for series.",
+        },
+      );
+    });
+  }
+}

@@ -52,7 +52,7 @@ export const ARR_DATASETS = [
     strId: "ci-minutes",
     strPath: "samples/ci-minutes.csv",
     strSource: "sample",
-    strAbout: "CI minutes per weekday, a category x axis",
+    strAbout: "Incompatible weekday axis: X and Y require numeric columns",
     objStartSpec: {
       strChart: "line",
       objFields: { x: "weekday", y: "minutes" },
@@ -93,7 +93,7 @@ export async function loadRaw(objDataset) {
 /**
  * Pick a starting chart for a file the page has not seen, such as an upload.
  * Two number columns make a scatter, or a line per series when a category column has a few
- * values. A category and a number column make a line. Slots it can't fill are left empty.
+ * values. Axes need distinct numeric columns; slots it can't fill are left empty.
  * @param {ParseResult} objParse
  * @returns {StartSpec}
  */
@@ -128,10 +128,10 @@ export function guessSpec(objParse) {
       strTitle: "",
     };
   }
-  if (arrNumbers.length === 1 && arrCategories.length >= 1) {
+  if (arrNumbers.length === 1) {
     return {
       strChart: "line",
-      objFields: { x: arrCategories[0].strField, y: arrNumbers[0].strField },
+      objFields: { x: arrNumbers[0].strField },
       strTitle: "",
     };
   }

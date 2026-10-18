@@ -129,7 +129,7 @@ function currentSpec() {
 }
 
 /**
- * Keep slot choices that still fit the chart and columns; fill the rest with the first free fit.
+ * Preserve explicit choices for validation; fill only unspecified required slots.
  * @param {ParseResult} objParse
  * @returns {void}
  */
@@ -143,9 +143,9 @@ function reconcileFields(objParse) {
     const objKept = objParse.arrColumns.find(
       (objCol) => objCol.strField === strKept,
     );
-    if (objKept && objSlot.arrTypes.includes(objKept.strType)) {
+    if (strKept !== undefined) {
       objNext[objSlot.strSlot] = strKept;
-      setUsed.add(strKept);
+      if (objKept) setUsed.add(strKept);
     }
   }
   for (const objSlot of objChart.arrSlots) {
@@ -173,20 +173,24 @@ function run() {
   /** @type {Scene | null} */
   let objScene = null;
   let strLayoutError = "";
-  const objUnfillable = getChart(objState.strChart).arrSlots.find(
-    (objSlot) =>
-      !(/** @type {{bOptional?: boolean}} */ (objSlot).bOptional) &&
-      !objParse.arrColumns.some((objCol) =>
-        objSlot.arrTypes.includes(objCol.strType),
-      ),
-  );
-  if (objParse.arrErrors.length === 0 && objUnfillable) {
-    strLayoutError = `No column in this file fits "${objUnfillable.strSlot}", which takes ${objUnfillable.arrTypes.join(" or ")}`;
-  } else if (objParse.arrErrors.length === 0) {
+  if (objParse.arrErrors.length === 0) {
     try {
       objScene = layout(objParse, objSpec);
     } catch (objError) {
       strLayoutError = /** @type {Error} */ (objError).message;
+      if (
+        ["x", "y"].some(
+          (strAxis) =>
+            strLayoutError ===
+            `${objState.strChart} needs a column for "${strAxis}"`,
+        ) &&
+        objParse.arrColumns.filter(
+          (objCol) => objCol.strType === COLUMN_TYPES.NUMBER,
+        ).length < 2
+      ) {
+        strLayoutError =
+          "X and Y axes require numeric columns. Category columns can only be used for series.";
+      }
     }
   }
   const strSvg = objScene ? renderSvg(objScene) : "";
@@ -561,7 +565,7 @@ function renderStage() {
     objCanvas.innerHTML = `
       <div class="stage-message is-error">
         <h3>Layout can't build this chart</h3>
-        <p>${escapeHtml(objRun.strLayoutError)}. ${
+        <p>${escapeHtml(objRun.strLayoutError)}${objRun.strLayoutError.endsWith(".") ? "" : "."} ${
           objRun.strLayoutError.startsWith("No column")
             ? "Pick the other chart, or upload a file that has one."
             : "Pick a different column under Columns."

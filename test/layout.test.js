@@ -232,7 +232,7 @@ test("throws when a column's type doesn't fit the slot", () => {
         strChart: "scatter",
         objFields: { x: "agent", y: "bugs" },
       }),
-    /"x" takes number, but agent is category/,
+    /X and Y axes require numeric columns/,
   );
 });
 

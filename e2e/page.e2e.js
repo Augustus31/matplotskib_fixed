@@ -143,3 +143,177 @@ test("broken.csv shows the parser errors instead of a chart", async () => {
   assert.equal(await objPage.locator("#stage-canvas li").count(), 2);
   assert.deepEqual(arrProblems, []);
 });
+
+test("weekday sample stays invalid in both charts without substituting axes", async () => {
+  await objPage.getByText("ci-minutes.csv", { exact: true }).click();
+  await objPage.getByText("Layout can't build this chart").waitFor();
+  for (const strChart of ["line", "scatter", "line"]) {
+    await objPage.locator(`label[for='chart-${strChart}']`).click();
+    assert.match(
+      await objPage.locator("#stage-canvas").innerText(),
+      /X and Y axes require numeric columns\. Category columns can only be used for series\./,
+    );
+    assert.equal(await objPage.locator("#stage-canvas svg").count(), 0);
+    assert.equal(await objPage.locator("#slot-x").inputValue(), "weekday");
+    assert.equal(await objPage.locator("#slot-y").inputValue(), "minutes");
+    for (const strAxis of ["x", "y"]) {
+      assert.equal(
+        await objPage
+          .locator(`#slot-${strAxis} option[value='weekday']`)
+          .evaluate((objOption) => objOption.disabled),
+        true,
+      );
+    }
+    assert.equal(
+      await objPage
+        .locator("#slot-series option[value='weekday']")
+        .evaluate((objOption) => objOption.disabled),
+      false,
+    );
+  }
+  await objPage.locator("#slot-x").selectOption("minutes");
+  await objPage.locator("#stage-canvas svg").waitFor();
+  await objPage.locator("label[for='chart-scatter']").click();
+  assert.equal(await objPage.locator("#slot-x").inputValue(), "minutes");
+  assert.equal(await objPage.locator("#slot-y").inputValue(), "minutes");
+  assert.equal(await objPage.locator("circle.point").count(), 5);
+});
+
+test("review-times sorts line vertices and restores scatter order and tooltips", async () => {
+  await objPage.getByText("review-times.csv", { exact: true }).click();
+  await objPage.waitForFunction(
+    () => document.querySelector("#slot-x")?.value === "linesChanged",
+  );
+  await objPage.locator("circle.point").first().waitFor();
+  const arrOriginal = await objPage
+    .locator("circle.point")
+    .evaluateAll((arrEls) =>
+      arrEls.map((objEl) => [
+        objEl.getAttribute("cx"),
+        objEl.getAttribute("cy"),
+      ]),
+    );
+  await objPage.locator("label[for='chart-line']").click();
+  const arrXs = await objPage.locator("polyline.line").evaluate((objEl) =>
+    objEl
+      .getAttribute("points")
+      .trim()
+      .split(/\s+/)
+      .map((strPoint) => Number(strPoint.split(",")[0])),
+  );
+  assert.equal(arrXs.length, 16);
+  assert.ok(
+    arrXs.every(
+      (numX, numIndex) => numIndex === 0 || arrXs[numIndex - 1] <= numX,
+    ),
+  );
+  await objPage.locator("label[for='chart-scatter']").click();
+  assert.equal(await objPage.locator("#slot-x").inputValue(), "linesChanged");
+  assert.equal(
+    await objPage.locator("#slot-y").inputValue(),
+    "minutesToReview",
+  );
+  assert.deepEqual(
+    await objPage
+      .locator("circle.point")
+      .evaluateAll((arrEls) =>
+        arrEls.map((objEl) => [
+          objEl.getAttribute("cx"),
+          objEl.getAttribute("cy"),
+        ]),
+      ),
+    arrOriginal,
+  );
+  await objPage.locator("circle.point").nth(2).hover({ force: true });
+  assert.equal(await objPage.locator("#tooltip").isVisible(), true);
+  assert.deepEqual(await objPage.locator("#tooltip b").allTextContents(), [
+    "15",
+    "4",
+  ]);
+});
+
+test("custom fields, title and size survive switches; dataset selection resets fields", async () => {
+  await objPage.getByText("agents-vs-bugs.csv", { exact: true }).click();
+  await objPage
+    .locator("#slot-series option[value='agent']")
+    .waitFor({ state: "attached" });
+  await objPage.locator("#slot-x").selectOption("bugs");
+  await objPage.locator("#slot-y").selectOption("day");
+  await objPage.locator("#input-title").fill("Custom title");
+  await objPage.locator("#input-width").fill("800");
+  await objPage.locator("#input-height").fill("500");
+  for (const strChart of ["scatter", "line", "scatter"]) {
+    await objPage.locator(`label[for='chart-${strChart}']`).click();
+    assert.equal(await objPage.locator("#slot-x").inputValue(), "bugs");
+    assert.equal(await objPage.locator("#slot-y").inputValue(), "day");
+    assert.equal(await objPage.locator("#slot-series").inputValue(), "agent");
+    assert.equal(
+      await objPage.locator("svg .title").textContent(),
+      "Custom title",
+    );
+    assert.equal(
+      await objPage.locator("#stage-canvas svg").getAttribute("width"),
+      "800",
+    );
+    assert.equal(
+      await objPage.locator("#stage-canvas svg").getAttribute("height"),
+      "500",
+    );
+  }
+  await objPage.locator("circle.point").nth(5).hover();
+  assert.equal(
+    await objPage.locator("#tooltip .tip-head").textContent(),
+    "Agent B",
+  );
+  assert.deepEqual(await objPage.locator("#tooltip b").allTextContents(), [
+    "2",
+    "1",
+  ]);
+  await objPage.getByText("review-times.csv", { exact: true }).click();
+  assert.equal(await objPage.locator("#slot-x").inputValue(), "linesChanged");
+  assert.equal(
+    await objPage.locator("#slot-y").inputValue(),
+    "minutesToReview",
+  );
+  assert.equal(await objPage.locator("#slot-series").inputValue(), "");
+});
+
+test("uploads need two numeric initial axes and replacement uploads reset mappings", async () => {
+  await objPage.locator("#input-file").setInputFiles({
+    name: "switch.csv",
+    mimeType: "text/csv",
+    buffer: Buffer.from("weekday,minutes\nMon,14\nTue,22"),
+  });
+  await objPage.getByText("switch.csv", { exact: true }).waitFor();
+  assert.equal(await objPage.locator("#slot-x").inputValue(), "minutes");
+  assert.equal(await objPage.locator("#slot-y").inputValue(), "");
+  for (const strChart of ["scatter", "line"]) {
+    await objPage.locator(`label[for='chart-${strChart}']`).click();
+    assert.equal(await objPage.locator("#slot-y").inputValue(), "");
+    assert.match(
+      await objPage.locator("#stage-canvas").innerText(),
+      /X and Y axes require numeric columns/,
+    );
+    assert.equal(await objPage.locator("#stage-canvas svg").count(), 0);
+  }
+  await objPage.locator("#slot-y").selectOption("minutes");
+  await objPage.locator("#slot-series").selectOption("weekday");
+  await objPage.locator("label[for='chart-scatter']").click();
+  assert.equal(await objPage.locator("circle.point").count(), 2);
+  await objPage.locator("#input-file").setInputFiles({
+    name: "switch.csv",
+    mimeType: "text/csv",
+    buffer: Buffer.from("a,b\n3,4\n1,2"),
+  });
+  await objPage.waitForFunction(
+    () => document.querySelector("#slot-x")?.value === "a",
+  );
+  assert.equal(await objPage.locator("#slot-y").inputValue(), "b");
+  assert.equal(await objPage.locator("#slot-series").inputValue(), "");
+  assert.equal(
+    await objPage.getByText("switch.csv", { exact: true }).count(),
+    1,
+  );
+  assert.equal(await objPage.locator("circle.point").count(), 2);
+  assert.deepEqual(arrProblems, []);
+});

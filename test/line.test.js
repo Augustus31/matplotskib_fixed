@@ -68,7 +68,7 @@ test("registers line with x, y and optional series slots", () => {
   assert.deepEqual(objLine.arrSlots, [
     {
       strSlot: "x",
-      arrTypes: ["category", "number"],
+      arrTypes: ["number"],
     },
     {
       strSlot: "y",
@@ -136,7 +136,7 @@ test("sorts numeric x within each series and keeps series order", () => {
   ]);
 });
 
-test("maps category x values through the x scale", () => {
+test("internal builder maps generic scale positions (public category axes are rejected)", () => {
   /** @type {import("../src/contracts.js").ParseResult} */
   const objCategoryParse = {
     arrColumns: [
@@ -206,7 +206,7 @@ test("returns no lines when there are no rows", () => {
   assert.deepEqual(arrItems, []);
 });
 
-test("sorts category x by axis position within each series", () => {
+test("internal sorter orders generic scale positions within each series", () => {
   /** @type {import("../src/contracts.js").ParseResult} */
   const objCategorySeriesParse = {
     arrColumns: [

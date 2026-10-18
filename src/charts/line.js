@@ -1,5 +1,6 @@
 import { COLUMN_TYPES, SCENE_KINDS } from "../contracts.js";
 import { registerChart } from "../registry.js";
+import { buildScatter } from "./scatter.js";
 
 /**
  * Group rows by series in order of first appearance.
@@ -33,7 +34,7 @@ function groupRows(objParse, strSeriesField) {
  * @param {import("../contracts.js").ChartSpec} objSpec
  * @param {import("../contracts.js").Frame} _objFrame
  * @param {import("../contracts.js").Scales} objScales
- * @returns {import("../contracts.js").ScenePolyline[]}
+ * @returns {(import("../contracts.js").ScenePolyline | import("../contracts.js").SceneCircle)[]}
  */
 export function buildLine(objParse, objSpec, _objFrame, objScales) {
   const strXField = objSpec.objFields.x;
@@ -41,17 +42,32 @@ export function buildLine(objParse, objSpec, _objFrame, objScales) {
   const strSeriesField = objSpec.objFields.series;
   const arrGroups = groupRows(objParse, strSeriesField);
 
-  return arrGroups.map((arrRows, numSeries) => {
+  // Build connecting lines
+  const arrLines = arrGroups.map((arrRows, numSeries) => {
     const arrPoints = arrRows.map((objRow) => [
       objScales.fnX(objRow[strXField]),
-      objScales.fnY(/** @type {number} */ (objRow[strYField])),
+      objScales.fnY(Number(objRow[strYField])),
     ]);
+
     return {
       strKind: SCENE_KINDS.POLYLINE,
       arrPoints,
       strClass: `line series-${numSeries}`,
     };
   });
+
+  // Added the scatter points so tooltips can be shown on the line plot too
+  const arrDots = buildScatter(
+    objParse,
+    objSpec,
+    _objFrame,
+    objScales
+  ).map((objPoint) => ({
+    ...objPoint,
+    strClass: "point line-point",
+  }));
+
+  return [...arrLines, ...arrDots];
 }
 
 /**

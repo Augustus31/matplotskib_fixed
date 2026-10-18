@@ -25,84 +25,6 @@
         </p>
       </header>
 
-      <nav class="rail-wrap" aria-label="Pipeline stages">
-        <ol class="rail" id="rail">
-          <li class="rail-step">
-            <button
-              type="button"
-              class="rail-contract"
-              data-tab="raw"
-              id="rail-raw"
-            >
-              <span class="rail-name">raw CSV</span>
-              <span class="rail-meta" data-meta="raw"></span>
-            </button>
-          </li>
-          <li class="rail-step">
-            <div class="rail-module" data-stage="parser">
-              <span class="rail-name">parser</span>
-              <span class="badge" data-badge="parser"></span>
-            </div>
-          </li>
-          <li class="rail-step">
-            <div class="rail-pair">
-              <button
-                type="button"
-                class="rail-contract"
-                data-tab="parse"
-                id="rail-parse"
-              >
-                <span class="rail-name">ParseResult</span>
-                <span class="rail-meta" data-meta="parse"></span>
-              </button>
-              <button
-                type="button"
-                class="rail-contract"
-                data-tab="spec"
-                id="rail-spec"
-              >
-                <span class="rail-name">ChartSpec</span>
-                <span class="rail-meta" data-meta="spec"></span>
-              </button>
-            </div>
-          </li>
-          <li class="rail-step">
-            <div class="rail-module" data-stage="layout">
-              <span class="rail-name">layout</span>
-              <span class="badge" data-badge="layout"></span>
-            </div>
-          </li>
-          <li class="rail-step">
-            <button
-              type="button"
-              class="rail-contract"
-              data-tab="scene"
-              id="rail-scene"
-            >
-              <span class="rail-name">Scene</span>
-              <span class="rail-meta" data-meta="scene"></span>
-            </button>
-          </li>
-          <li class="rail-step">
-            <div class="rail-module" data-stage="svg">
-              <span class="rail-name">svg</span>
-              <span class="badge" data-badge="svg"></span>
-            </div>
-          </li>
-          <li class="rail-step">
-            <button
-              type="button"
-              class="rail-contract"
-              data-tab="svg"
-              id="rail-svg"
-            >
-              <span class="rail-name">&lt;svg&gt;</span>
-              <span class="rail-meta" data-meta="svg"></span>
-            </button>
-          </li>
-        </ol>
-      </nav>
-
       <main class="workbench">
         <form class="controls" id="controls" autocomplete="off">
           <fieldset class="group">
@@ -174,6 +96,84 @@
             <ul class="legend" id="legend" hidden></ul>
             <div class="tooltip" id="tooltip" role="status" hidden></div>
           </section>
+
+          <nav class="rail-wrap" aria-label="Pipeline stages">
+            <ol class="rail" id="rail">
+              <li class="rail-step">
+                <button
+                  type="button"
+                  class="rail-contract"
+                  data-tab="raw"
+                  id="rail-raw"
+                >
+                  <span class="rail-name">raw CSV</span>
+                  <span class="rail-meta" data-meta="raw"></span>
+                </button>
+              </li>
+              <li class="rail-step">
+                <div class="rail-module" data-stage="parser">
+                  <span class="rail-name">parser</span>
+                  <span class="badge" data-badge="parser"></span>
+                </div>
+              </li>
+              <li class="rail-step">
+                <div class="rail-pair">
+                  <button
+                    type="button"
+                    class="rail-contract"
+                    data-tab="parse"
+                    id="rail-parse"
+                  >
+                    <span class="rail-name">ParseResult</span>
+                    <span class="rail-meta" data-meta="parse"></span>
+                  </button>
+                  <button
+                    type="button"
+                    class="rail-contract"
+                    data-tab="spec"
+                    id="rail-spec"
+                  >
+                    <span class="rail-name">ChartSpec</span>
+                    <span class="rail-meta" data-meta="spec"></span>
+                  </button>
+                </div>
+              </li>
+              <li class="rail-step">
+                <div class="rail-module" data-stage="layout">
+                  <span class="rail-name">layout</span>
+                  <span class="badge" data-badge="layout"></span>
+                </div>
+              </li>
+              <li class="rail-step">
+                <button
+                  type="button"
+                  class="rail-contract"
+                  data-tab="scene"
+                  id="rail-scene"
+                >
+                  <span class="rail-name">Scene</span>
+                  <span class="rail-meta" data-meta="scene"></span>
+                </button>
+              </li>
+              <li class="rail-step">
+                <div class="rail-module" data-stage="svg">
+                  <span class="rail-name">svg</span>
+                  <span class="badge" data-badge="svg"></span>
+                </div>
+              </li>
+              <li class="rail-step">
+                <button
+                  type="button"
+                  class="rail-contract"
+                  data-tab="svg"
+                  id="rail-svg"
+                >
+                  <span class="rail-name">&lt;svg&gt;</span>
+                  <span class="rail-meta" data-meta="svg"></span>
+                </button>
+              </li>
+            </ol>
+          </nav>
 
           <section class="inspector" aria-labelledby="inspector-title">
             <header class="inspector-head">

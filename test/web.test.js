@@ -33,6 +33,30 @@ test("web pipeline draws the fixture as a scatter with one point per row", () =>
   assert.equal(renderSvg(objScene).match(/<circle/g)?.length, 15);
 });
 
+test("grouped scatter retains the line palette indices through the real pipeline", () => {
+  const objParse = parse(readText("fixtures/agents-vs-bugs.csv"));
+  const arrBefore = structuredClone(objParse.arrRows);
+  for (const strChart of ["line", "scatter", "line"]) {
+    const objScene = layout(objParse, {
+      strChart,
+      objFields: { x: "day", y: "bugs", series: "agent" },
+    });
+    const strSvg = renderSvg(objScene);
+    for (let numSeries = 0; numSeries < 3; numSeries += 1) {
+      assert.equal(
+        strSvg.match(
+          new RegExp(
+            `class="${strChart === "line" ? "line" : "point"} series-${numSeries}"`,
+            "g",
+          ),
+        )?.length,
+        strChart === "line" ? 1 : 5,
+      );
+    }
+    assert.deepEqual(objParse.arrRows, arrBefore);
+  }
+});
+
 test("the broken sample fails in the parser, so the page shows errors", () => {
   const objParse = parse(readText("web/samples/broken.csv"));
   assert.equal(objParse.arrErrors.length, 2);

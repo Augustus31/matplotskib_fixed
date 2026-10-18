@@ -56,6 +56,7 @@ test("registers as scatter with a number x slot and a number y slot", () => {
   assert.deepEqual(objScatter.arrSlots, [
     { strSlot: "x", arrTypes: ["number"] },
     { strSlot: "y", arrTypes: ["number"] },
+    { strSlot: "series", arrTypes: ["category"], bOptional: true },
   ]);
 });
 
@@ -113,4 +114,36 @@ test("reads the columns named in objFields, not fixed names", () => {
 test("no rows gives no items", () => {
   const arrItems = build({ ...objParse, arrRows: [] }, objSpec, objFakeScales);
   assert.deepEqual(arrItems, []);
+});
+
+test("grouped scatter uses first-appearance classes without changing row order", () => {
+  const arrLabels = ["B", "A", "B", "C", "D", "E", "A"];
+  const objData = {
+    ...objParse,
+    arrRows: arrLabels.map((strLabel, numIndex) => ({
+      height: 7 - numIndex,
+      weight: numIndex,
+      agent: strLabel,
+    })),
+  };
+  const arrBefore = structuredClone(objData.arrRows);
+  const arrItems = build(
+    objData,
+    { ...objSpec, objFields: { ...objSpec.objFields, series: "agent" } },
+    objFakeScales,
+  );
+  assert.deepEqual(
+    arrItems.map((objItem) => objItem.strClass),
+    [0, 1, 0, 2, 3, 4, 1].map((numSeries) => `point series-${numSeries}`),
+  );
+  assert.deepEqual(
+    arrItems.map((objItem) => objItem.numX),
+    [70, 60, 50, 40, 30, 20, 10],
+  );
+  assert.deepEqual(
+    arrItems.map((objItem) => objItem.numY),
+    [100, 99, 98, 97, 96, 95, 94],
+  );
+  assert.ok(arrItems.every((objItem) => objItem.numR === 4));
+  assert.deepEqual(objData.arrRows, arrBefore);
 });

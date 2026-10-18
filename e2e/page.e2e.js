@@ -79,6 +79,63 @@ test("switching to scatter draws one point per row", async () => {
   assert.deepEqual(arrProblems, []);
 });
 
+test("repeated switches preserve fields, series colors, legend and explicit None", async () => {
+  await objPage.getByText("agents-vs-bugs.csv", { exact: true }).click();
+  await objPage.locator("#slot-series").waitFor();
+  await objPage.locator("label[for='chart-line']").click();
+  const arrColors = await objPage
+    .locator("polyline.line")
+    .evaluateAll((arrEls) =>
+      arrEls.map((objEl) => getComputedStyle(objEl).stroke),
+    );
+  for (let numCycle = 0; numCycle < 3; numCycle += 1) {
+    await objPage.locator("label[for='chart-scatter']").click();
+    assert.equal(await objPage.locator("#slot-x").inputValue(), "day");
+    assert.equal(await objPage.locator("#slot-y").inputValue(), "bugs");
+    assert.equal(await objPage.locator("#slot-series").inputValue(), "agent");
+    assert.equal(await objPage.locator("#legend li").count(), 3);
+    assert.equal(await objPage.locator("#legend").isVisible(), true);
+    for (let numSeries = 0; numSeries < 3; numSeries += 1) {
+      const objPoints = objPage.locator(`circle.point.series-${numSeries}`);
+      assert.equal(await objPoints.count(), 5);
+      assert.equal(
+        await objPoints
+          .first()
+          .evaluate((objEl) => getComputedStyle(objEl).fill),
+        arrColors[numSeries],
+      );
+    }
+    await objPage.locator("label[for='chart-line']").click();
+    assert.equal(await objPage.locator("polyline.line").count(), 3);
+    assert.deepEqual(
+      await objPage
+        .locator("polyline.line")
+        .evaluateAll((arrEls) =>
+          arrEls.map(
+            (objEl) => objEl.getAttribute("points").trim().split(/\s+/).length,
+          ),
+        ),
+      [5, 5, 5],
+    );
+  }
+  await objPage.locator("#slot-series").selectOption("");
+  for (const strChart of ["scatter", "line", "scatter", "line"]) {
+    await objPage.locator(`label[for='chart-${strChart}']`).click();
+    assert.equal(await objPage.locator("#slot-series").inputValue(), "");
+    assert.equal(await objPage.locator("#legend").isVisible(), false);
+    assert.equal(
+      await objPage
+        .locator(
+          strChart === "line"
+            ? "polyline.line"
+            : "circle.point:not([class*='series-'])",
+        )
+        .count(),
+      strChart === "line" ? 1 : 15,
+    );
+  }
+});
+
 test("broken.csv shows the parser errors instead of a chart", async () => {
   await objPage.getByText("broken.csv", { exact: true }).click();
   await objPage.getByText("The parser rejected this file").waitFor();

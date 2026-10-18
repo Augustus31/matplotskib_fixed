@@ -23,14 +23,9 @@ const OBJ_TABS = {
     strRole: "The file as it sits on disk. Input to the parser.",
   },
   parse: {
-    strTitle: "ParseResult",
+    strTitle: "Validated Data",
     strRole:
-      "Made by the parser, read by layout. Columns, one object per row, and any errors.",
-  },
-  spec: {
-    strTitle: "ChartSpec",
-    strRole:
-      "Built from the controls on the left. Says which chart and which column fills each slot.",
+      "Made by the parser, input to layout. First row are the labels and consecutive rows are the data.",
   },
   scene: {
     strTitle: "Scene",
@@ -477,7 +472,6 @@ function renderRail() {
       ? plural(objParse.arrErrors.length, "error")
       : `${plural(objParse.arrRows.length, "row")}, ${plural(objParse.arrColumns.length, "column")}`,
   );
-  setMeta("spec", objRun.objSpec.strChart);
   setMeta(
     "scene",
     objScene ? plural(objScene.arrItems.length, "item") : "none",
@@ -730,8 +724,6 @@ function copyText() {
       return objRun.strRaw;
     case "parse":
       return JSON.stringify(objRun.objParse, null, 2);
-    case "spec":
-      return JSON.stringify(objRun.objSpec, null, 2);
     case "scene":
       return objRun.objScene ? formatScene(objRun.objScene) : "";
     default:
@@ -775,19 +767,6 @@ function parseView(objParse) {
   return `<h3 class="sub">arrColumns</h3><ul class="column-list">${strColumns}</ul>${strErrors}${strTable}`;
 }
 
-/** @param {ChartSpec} objSpec */
-function specView(objSpec) {
-  const strCall = [
-    `const objParse = parseCsv(strCsv);`,
-    `const objScene = fnLayout(objParse, objSpec);`,
-    `const strSvg = renderSvg(objScene);`,
-  ].join("\n");
-  return `<pre class="code">${escapeHtml(JSON.stringify(objSpec, null, 2))}</pre>
-    <h3 class="sub">How the page calls the library</h3>
-    <pre class="code">${escapeHtml(strCall)}</pre>
-    <p class="muted">The page calls each stage itself so the inspector can show every output. Other code uses renderChart from src/index.js (#18), which runs all three.</p>`;
-}
-
 /** @param {Scene} objScene */
 function sceneView(objScene) {
   /** @type {Object<string, number>} */
@@ -825,9 +804,6 @@ function renderInspector() {
       break;
     case "parse":
       strHtml = parseView(objRun.objParse);
-      break;
-    case "spec":
-      strHtml = specView(objRun.objSpec);
       break;
     case "scene":
       strHtml = objRun.objScene

@@ -190,9 +190,8 @@ function buildGuides(objParse, objSpec, objFrame, objScales) {
 
   /** @type {SceneItem[]} */
   const arrItems = [];
-  for (const numTick of /** @type {number[]} */ (
-    ticksFor(objParse, strYField)
-  )) {
+  const arrYTicks = /** @type {number[]} */ (ticksFor(objParse, strYField));
+  for (const numTick of arrYTicks) {
     const numY = objScales.fnY(numTick);
     arrItems.push(
       line(numLeft, numY, numRight, numY, "grid"),
@@ -206,9 +205,18 @@ function buildGuides(objParse, objSpec, objFrame, objScales) {
       ),
     );
   }
-  for (const tick of ticksFor(objParse, strXField)) {
+  for (let numIndex = 0; numIndex < arrYTicks.length - 1; numIndex += 1) {
+    const numPrev = arrYTicks[numIndex];
+    const numNext = arrYTicks[numIndex + 1];
+    const numMidY = (objScales.fnY(numPrev) + objScales.fnY(numNext)) / 2;
+    arrItems.push(line(numLeft, numMidY, numRight, numMidY, "grid"));
+  }
+
+  const arrXTicks = ticksFor(objParse, strXField);
+  for (const tick of arrXTicks) {
     const numX = objScales.fnX(tick);
     arrItems.push(
+      line(numX, numTop, numX, numBottom, "grid"),
       line(numX, numBottom, numX, numBottom + NUM_TICK_LENGTH, "tick"),
       text(
         numX,
@@ -218,6 +226,12 @@ function buildGuides(objParse, objSpec, objFrame, objScales) {
         "tick-label",
       ),
     );
+  }
+  for (let numIndex = 0; numIndex < arrXTicks.length - 1; numIndex += 1) {
+    const numPrev = arrXTicks[numIndex];
+    const numNext = arrXTicks[numIndex + 1];
+    const numMidX = (objScales.fnX(numPrev) + objScales.fnX(numNext)) / 2;
+    arrItems.push(line(numMidX, numTop, numMidX, numBottom, "grid"));
   }
   arrItems.push(
     line(numLeft, numBottom, numRight, numBottom, "axis"),

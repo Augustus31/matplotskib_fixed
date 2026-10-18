@@ -40,6 +40,7 @@ const OBJ_TABS = {
 
 const NUM_HOVER_RADIUS = 18;
 const NUM_MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
+const STR_PIPELINE_KEY = "matplotskib.showPipeline";
 
 /** Built-in files plus anything uploaded this session, newest upload first. */
 const arrDatasets = [...ARR_DATASETS];
@@ -508,6 +509,7 @@ function renderRail() {
 function pulseRail() {
   if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
   let boolStopped = false;
+  if (!isPipelineShown()) return;
   document.querySelectorAll(".rail-step").forEach((objStep, numIndex) => {
     const objEl = /** @type {HTMLElement} */ (objStep);
     objEl.classList.remove("is-pulsing");
@@ -530,6 +532,44 @@ function wireRail() {
       /** @type {HTMLElement} */ (objButton).dataset.tab ?? "parse";
     renderRail();
     renderInspector();
+  });
+}
+
+// ---------- pipeline toggle ----------
+
+function isPipelineShown() {
+  return (
+    /** @type {HTMLElement} */ (document.querySelector(".page")).dataset
+      .pipeline === "shown"
+  );
+}
+
+/** @param {boolean} boolShown */
+function setPipelineShown(boolShown) {
+  const objPage = /** @type {HTMLElement} */ (document.querySelector(".page"));
+  objPage.dataset.pipeline = boolShown ? "shown" : "hidden";
+  const objToggle = byId("pipeline-toggle");
+  objToggle.setAttribute("aria-expanded", String(boolShown));
+  objToggle.textContent = boolShown ? "Hide pipeline" : "Show pipeline";
+  try {
+    localStorage.setItem(STR_PIPELINE_KEY, String(boolShown));
+  } catch {
+    // storage blocked: the choice just won't survive a reload
+  }
+}
+
+/** Hidden by default; the masthead button shows the rail and inspector. */
+function wirePipelineToggle() {
+  let boolSaved = false;
+  try {
+    boolSaved = localStorage.getItem(STR_PIPELINE_KEY) === "true";
+  } catch {
+    // storage blocked: fall back to hidden
+  }
+  setPipelineShown(boolSaved);
+  byId("pipeline-toggle").addEventListener("click", () => {
+    setPipelineShown(!isPipelineShown());
+    pulseRail();
   });
 }
 
@@ -872,6 +912,7 @@ syncInputs();
 wireControls();
 wireUpload();
 wireRail();
+wirePipelineToggle();
 wireStage();
 wireCopy();
 selectDataset(objState.strDatasetId);

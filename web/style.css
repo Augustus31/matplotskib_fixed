@@ -147,7 +147,31 @@ pre {
   font-size: 14px;
 }
 
+.pipeline-toggle {
+  margin-left: auto;
+  align-self: center;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 5px 12px;
+  border-radius: var(--radius-control);
+  border: 1.5px solid var(--rule);
+  background: var(--sheet);
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.pipeline-toggle:hover {
+  border-color: var(--ink-3);
+}
+
 /* ---------- pipeline rail ---------- */
+
+/* rail and inspector stay hidden until the masthead toggle shows them */
+.page[data-pipeline="hidden"] .rail-wrap,
+.page[data-pipeline="hidden"] .inspector {
+  display: none;
+}
 
 .page > * {
   min-width: 0;

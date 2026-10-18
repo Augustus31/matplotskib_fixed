@@ -16,13 +16,22 @@
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <div class="page">
+    <div class="page" data-pipeline="hidden">
       <header class="masthead">
         <h1 class="wordmark">matplotskib</h1>
         <p class="masthead-note">
           Pick a file, map its columns to the chart's slots, and inspect what
           each stage hands to the next.
         </p>
+        <button
+          type="button"
+          class="pipeline-toggle"
+          id="pipeline-toggle"
+          aria-expanded="false"
+          aria-controls="rail-wrap inspector"
+        >
+          Show pipeline
+        </button>
       </header>
 
       <main class="workbench">
@@ -97,7 +106,7 @@
             <div class="tooltip" id="tooltip" role="status" hidden></div>
           </section>
 
-          <nav class="rail-wrap" aria-label="Pipeline stages">
+          <nav class="rail-wrap" id="rail-wrap" aria-label="Pipeline stages">
             <ol class="rail" id="rail">
               <li class="rail-step">
                 <button
@@ -164,7 +173,7 @@
             </ol>
           </nav>
 
-          <section class="inspector" aria-labelledby="inspector-title">
+          <section class="inspector" id="inspector" aria-labelledby="inspector-title">
             <header class="inspector-head">
               <div>
                 <h2 id="inspector-title"></h2>

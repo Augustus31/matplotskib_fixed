@@ -1,6 +1,6 @@
 # Workbench (frontend)
 
-The browser page for matplotskib. Pick a data file, choose a chart, map columns to the chart's slots, and see the SVG. The pipeline rail across the top shows each contract (`ParseResult`, `ChartSpec`, `Scene`, `<svg>`); click one to inspect it.
+The browser page for matplotskib. Pick a data file, choose a chart, map columns to the chart's slots, and see the SVG. The pipeline rail across the top shows each contract (`ParseResult`, `ChartSpec`, `Scene`, `<svg>`); click one to inspect it. The rail and inspector are hidden by default; **Show pipeline** in the header brings them back, and the page remembers the choice in this browser.
 
 ## Run it
 

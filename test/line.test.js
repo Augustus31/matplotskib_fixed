@@ -44,7 +44,7 @@ const objSpec = {
   },
 };
 
-test("builds one line in row order when series is omitted", () => {
+test("connects numeric x values in ascending order when series is omitted", () => {
   const arrItems = getChart("line").fnBuild(
     objParse,
     objSpec,
@@ -56,9 +56,9 @@ test("builds one line in row order when series is omitted", () => {
   assert.equal(arrItems[0].strKind, "polyline");
 
   assert.deepEqual(arrItems[0].arrPoints, [
-    [30, 95],
     [10, 96],
     [20, 93],
+    [30, 95],
   ]);
 });
 
@@ -90,10 +90,10 @@ const objSeriesParse = {
     { strField: "bugs", strType: "number" },
   ],
   arrRows: [
-    { agent: "B", day: 1, bugs: 2 },
-    { agent: "A", day: 1, bugs: 4 },
     { agent: "B", day: 2, bugs: 3 },
     { agent: "A", day: 2, bugs: 7 },
+    { agent: "B", day: 1, bugs: 2 },
+    { agent: "A", day: 1, bugs: 4 },
   ],
   arrErrors: [],
 };
@@ -108,7 +108,7 @@ const objSeriesSpec = {
   },
 };
 
-test("builds one line per series in first-appearance order", () => {
+test("sorts numeric x within each series and keeps series order", () => {
   const arrItems = getChart("line").fnBuild(
     objSeriesParse,
     objSeriesSpec,
@@ -144,9 +144,9 @@ test("maps category x values through the x scale", () => {
       { strField: "minutes", strType: "number" },
     ],
     arrRows: [
+      { weekday: "Wed", minutes: 12 },
       { weekday: "Mon", minutes: 10 },
       { weekday: "Tue", minutes: 14 },
-      { weekday: "Wed", minutes: 12 },
     ],
     arrErrors: [],
   };
@@ -161,9 +161,9 @@ test("maps category x values through the x scale", () => {
   };
 
   const objPositions = {
-    Mon: 100,
-    Tue: 300,
-    Wed: 500,
+    Wed: 100,
+    Mon: 300,
+    Tue: 500,
   };
 
   /** @type {import("../src/contracts.js").Scales} */
@@ -183,9 +183,9 @@ test("maps category x values through the x scale", () => {
     {
       strKind: "polyline",
       arrPoints: [
-        [100, 190],
-        [300, 186],
-        [500, 188],
+        [100, 188],
+        [300, 190],
+        [500, 186],
       ],
       strClass: "line series-0",
     },
@@ -204,4 +204,88 @@ test("returns no lines when there are no rows", () => {
   );
 
   assert.deepEqual(arrItems, []);
+});
+
+test("sorts category x by axis position within each series", () => {
+  /** @type {import("../src/contracts.js").ParseResult} */
+  const objCategorySeriesParse = {
+    arrColumns: [
+      { strField: "agent", strType: "category" },
+      { strField: "weekday", strType: "category" },
+      { strField: "minutes", strType: "number" },
+    ],
+    arrRows: [
+      { agent: "A", weekday: "Mon", minutes: 10 },
+      { agent: "A", weekday: "Tue", minutes: 14 },
+      { agent: "A", weekday: "Wed", minutes: 12 },
+      { agent: "B", weekday: "Tue", minutes: 11 },
+      { agent: "B", weekday: "Mon", minutes: 6 },
+      { agent: "B", weekday: "Wed", minutes: 8 },
+    ],
+    arrErrors: [],
+  };
+
+  const objPositions = { Mon: 100, Tue: 300, Wed: 500 };
+
+  /** @type {import("../src/contracts.js").Scales} */
+  const objCategoryScales = {
+    fnX: (value) => objPositions[String(value)],
+    fnY: (value) => 200 - value,
+  };
+
+  const arrItems = getChart("line").fnBuild(
+    objCategorySeriesParse,
+    {
+      strChart: "line",
+      objFields: { x: "weekday", y: "minutes", series: "agent" },
+    },
+    objFrame,
+    objCategoryScales,
+  );
+
+  assert.deepEqual(
+    arrItems.map((objItem) => objItem.arrPoints),
+    [
+      [
+        [100, 190],
+        [300, 186],
+        [500, 188],
+      ],
+      [
+        [100, 194],
+        [300, 189],
+        [500, 192],
+      ],
+    ],
+  );
+});
+
+test("points with the same x keep their input order", () => {
+  const arrItems = getChart("line").fnBuild(
+    {
+      ...objParse,
+      arrRows: [
+        { day: 2, bugs: 3 },
+        { day: 1, bugs: 4 },
+        { day: 1, bugs: 7 },
+      ],
+    },
+    objSpec,
+    objFrame,
+    objScales,
+  );
+
+  assert.deepEqual(arrItems[0].arrPoints, [
+    [10, 96],
+    [10, 93],
+    [20, 97],
+  ]);
+});
+
+test("does not reorder the parsed rows", () => {
+  const arrRowsBefore = structuredClone(objParse.arrRows);
+
+  getChart("line").fnBuild(objParse, objSpec, objFrame, objScales);
+
+  assert.deepEqual(objParse.arrRows, arrRowsBefore);
 });

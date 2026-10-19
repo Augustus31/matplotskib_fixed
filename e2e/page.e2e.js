@@ -134,6 +134,30 @@ test("repeated switches preserve fields, series colors, legend and explicit None
       strChart === "line" ? 1 : 15,
     );
   }
+  assert.deepEqual(arrProblems, []);
+});
+
+test("saving the SVG downloads the chart currently displayed", async () => {
+  await objPage.locator("#pipeline-toggle").click();
+  const objSaveButton = objPage.locator("#save-svg-button");
+  await objSaveButton.waitFor();
+  const objDownloadPromise = objPage.waitForEvent("download");
+  await objSaveButton.click();
+  const objDownload = await objDownloadPromise;
+  assert.equal(objDownload.suggestedFilename(), "chart.svg");
+  const objStream = await objDownload.createReadStream();
+  let strSvg = "";
+  for await (const bufChunk of objStream) strSvg += bufChunk.toString();
+  assert.match(strSvg, /^<svg /);
+  assert.match(strSvg, /style="[^"]*fill:/);
+  assert.match(strSvg, /style="[^"]*stroke:/);
+  assert.match(strSvg, /style="[^"]*font-family:/);
+  assert.equal(
+    (strSvg.match(/<circle /g) ?? []).length,
+    await objPage.locator("#stage-canvas svg circle").count(),
+  );
+  await objPage.locator("#pipeline-toggle").click();
+  assert.deepEqual(arrProblems, []);
 });
 
 test("broken.csv shows the parser errors instead of a chart", async () => {
@@ -141,6 +165,7 @@ test("broken.csv shows the parser errors instead of a chart", async () => {
   await objPage.getByText("The parser rejected this file").waitFor();
   assert.equal(await objPage.locator("#stage-canvas svg").count(), 0);
   assert.equal(await objPage.locator("#stage-canvas li").count(), 2);
+  assert.equal(await objPage.locator("#save-svg-button").isDisabled(), true);
   assert.deepEqual(arrProblems, []);
 });
 
@@ -154,6 +179,7 @@ test("weekday sample stays invalid in both charts without substituting axes", as
       /X and Y axes require numeric columns\. Category columns can only be used for series\./,
     );
     assert.equal(await objPage.locator("#stage-canvas svg").count(), 0);
+    assert.equal(await objPage.locator("#save-svg-button").isDisabled(), true);
     assert.equal(await objPage.locator("#slot-x").inputValue(), "weekday");
     assert.equal(await objPage.locator("#slot-y").inputValue(), "minutes");
     for (const strAxis of ["x", "y"]) {

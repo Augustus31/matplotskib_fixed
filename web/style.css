@@ -327,6 +327,25 @@ pre {
   }
 }
 
+/* Wide screens: data on the left, chart in the middle, settings on the right */
+@media (min-width: 1100px) {
+  .workbench {
+    grid-template-columns: 290px minmax(0, 1fr) 240px;
+  }
+
+  .workbench > .controls {
+    display: contents;
+  }
+
+  .output {
+    grid-area: 1 / 2;
+  }
+
+  .settings {
+    grid-area: 1 / 3;
+  }
+}
+
 .output {
   display: grid;
   gap: 18px;
@@ -342,7 +361,8 @@ pre {
 
 /* ---------- controls ---------- */
 
-.controls {
+.controls,
+.settings {
   display: grid;
   gap: 20px;
 }

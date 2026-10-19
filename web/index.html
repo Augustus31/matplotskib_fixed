@@ -55,26 +55,28 @@
             <div class="dataset-list" id="dataset-list"></div>
           </fieldset>
 
-          <fieldset class="group">
-            <legend>Chart</legend>
-            <div class="segmented" id="chart-picker"></div>
-          </fieldset>
+          <div class="settings">
+            <fieldset class="group">
+              <legend>Title</legend>
+              <label class="field" for="input-title">
+                <span>Title</span>
+                <input type="text" id="input-title" maxlength="80" />
+              </label>
+            </fieldset>
 
-          <fieldset class="group">
-            <legend>Columns</legend>
-            <p class="hint">
-              Columns of the wrong type for a slot are greyed out.
-            </p>
-            <div class="slot-list" id="slot-list"></div>
-          </fieldset>
+            <fieldset class="group">
+              <legend>Chart</legend>
+              <div class="segmented" id="chart-picker"></div>
+            </fieldset>
 
-          <fieldset class="group">
-            <legend>Title</legend>
-            <label class="field" for="input-title">
-              <span>Title</span>
-              <input type="text" id="input-title" maxlength="80" />
-            </label>
-          </fieldset>
+            <fieldset class="group">
+              <legend>Columns</legend>
+              <p class="hint">
+                Columns of the wrong type for a slot are greyed out.
+              </p>
+              <div class="slot-list" id="slot-list"></div>
+            </fieldset>
+          </div>
         </form>
 
         <div class="output">

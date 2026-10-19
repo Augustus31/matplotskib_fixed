@@ -25,12 +25,12 @@ const OBJ_TABS = {
   parse: {
     strTitle: "Validated Data",
     strRole:
-      "Made by the parser, input to layout. First row are the labels and consecutive rows are the data.",
+      "Output from parser, input to layout. First row are the labels and consecutive rows are the data.",
   },
   scene: {
     strTitle: "Scene",
     strRole:
-      "Made by layout, read by svg. Plain data with pixel positions, no DOM.",
+      "Output from layout, input to svg. Graph data with pixel positions for points and lines.",
   },
   svg: {
     strTitle: "<svg>",
@@ -769,16 +769,28 @@ function parseView(objParse) {
 
 /** @param {Scene} objScene */
 function sceneView(objScene) {
+  const LAYOUT_LABELS = {
+    grid: "gridline",
+    tick: "tick mark",
+    "tick-label": "tick label",
+    axis: "axis line",
+    "axis-label": "axis label",
+    title: "title",
+    point: "data point",
+    line: "data line",
+  };
+
   /** @type {Object<string, number>} */
   const objCounts = {};
   for (const objItem of objScene.arrItems) {
-    objCounts[objItem.strKind] = (objCounts[objItem.strKind] ?? 0) + 1;
+    const strBase = objItem.strClass.split(" ")[0];
+    objCounts[strBase] = (objCounts[strBase] ?? 0) + 1;
   }
-  const strCounts = Object.values(SCENE_KINDS)
-    .map(
-      (strKind) =>
-        `<li><span class="count">${objCounts[strKind] ?? 0}</span> <code>${strKind}</code></li>`,
-    )
+  const strCounts = Object.entries(objCounts)
+    .map(([strClass, numCount]) => {
+      const strLabel = LAYOUT_LABELS[strClass] ?? strClass;
+      return `<li><span class="count">${numCount}</span> ${strLabel}${numCount === 1 ? "" : "s"}</li>`;
+    })
     .join("");
   return `<ul class="count-list">${strCounts}</ul><pre class="code">${escapeHtml(formatScene(objScene))}</pre>`;
 }

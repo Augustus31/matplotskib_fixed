@@ -86,3 +86,22 @@ test("broken.csv shows the parser errors instead of a chart", async () => {
   assert.equal(await objPage.locator("#stage-canvas li").count(), 2);
   assert.deepEqual(arrProblems, []);
 });
+
+test("the pipeline is hidden until the toggle shows it, and stays shown on reload", async () => {
+  const objToggle = objPage.locator("#pipeline-toggle");
+  assert.equal(await objPage.locator("#rail-wrap").isVisible(), false);
+  assert.equal(await objPage.locator("#inspector").isVisible(), false);
+
+  await objToggle.click();
+  assert.equal(await objPage.locator("#rail-wrap").isVisible(), true);
+  assert.equal(await objPage.locator("#inspector").isVisible(), true);
+  assert.equal(await objToggle.getAttribute("aria-expanded"), "true");
+
+  await objPage.reload();
+  await objPage.locator("#stage-canvas svg").first().waitFor();
+  assert.equal(await objPage.locator("#rail-wrap").isVisible(), true);
+
+  await objToggle.click();
+  assert.equal(await objPage.locator("#rail-wrap").isVisible(), false);
+  assert.deepEqual(arrProblems, []);
+});

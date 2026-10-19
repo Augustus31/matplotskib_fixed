@@ -16,92 +16,23 @@
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <div class="page">
+    <div class="page" data-pipeline="hidden">
       <header class="masthead">
         <h1 class="wordmark">matplotskib</h1>
         <p class="masthead-note">
           Pick a file, map its columns to the chart's slots, and inspect what
           each stage hands to the next.
         </p>
+        <button
+          type="button"
+          class="pipeline-toggle"
+          id="pipeline-toggle"
+          aria-expanded="false"
+          aria-controls="rail-wrap inspector"
+        >
+          Show pipeline
+        </button>
       </header>
-
-      <nav class="rail-wrap" aria-label="Pipeline stages">
-        <ol class="rail" id="rail">
-          <li class="rail-step">
-            <button
-              type="button"
-              class="rail-contract"
-              data-tab="raw"
-              id="rail-raw"
-            >
-              <span class="rail-name">raw CSV</span>
-              <span class="rail-meta" data-meta="raw"></span>
-            </button>
-          </li>
-          <li class="rail-step">
-            <div class="rail-module" data-stage="parser">
-              <span class="rail-name">parser</span>
-              <span class="badge" data-badge="parser"></span>
-            </div>
-          </li>
-          <li class="rail-step">
-            <div class="rail-pair">
-              <button
-                type="button"
-                class="rail-contract"
-                data-tab="parse"
-                id="rail-parse"
-              >
-                <span class="rail-name">ParseResult</span>
-                <span class="rail-meta" data-meta="parse"></span>
-              </button>
-              <button
-                type="button"
-                class="rail-contract"
-                data-tab="spec"
-                id="rail-spec"
-              >
-                <span class="rail-name">ChartSpec</span>
-                <span class="rail-meta" data-meta="spec"></span>
-              </button>
-            </div>
-          </li>
-          <li class="rail-step">
-            <div class="rail-module" data-stage="layout">
-              <span class="rail-name">layout</span>
-              <span class="badge" data-badge="layout"></span>
-            </div>
-          </li>
-          <li class="rail-step">
-            <button
-              type="button"
-              class="rail-contract"
-              data-tab="scene"
-              id="rail-scene"
-            >
-              <span class="rail-name">Scene</span>
-              <span class="rail-meta" data-meta="scene"></span>
-            </button>
-          </li>
-          <li class="rail-step">
-            <div class="rail-module" data-stage="svg">
-              <span class="rail-name">svg</span>
-              <span class="badge" data-badge="svg"></span>
-            </div>
-          </li>
-          <li class="rail-step">
-            <button
-              type="button"
-              class="rail-contract"
-              data-tab="svg"
-              id="rail-svg"
-            >
-              <span class="rail-name">&lt;svg&gt;</span>
-              <span class="rail-meta" data-meta="svg"></span>
-            </button>
-          </li>
-        </ol>
-      </nav>
 
       <main class="workbench">
         <form class="controls" id="controls" autocomplete="off">
@@ -175,7 +106,74 @@
             <div class="tooltip" id="tooltip" role="status" hidden></div>
           </section>
 
-          <section class="inspector" aria-labelledby="inspector-title">
+          <nav class="rail-wrap" id="rail-wrap" aria-label="Pipeline stages">
+            <ol class="rail" id="rail">
+              <li class="rail-step">
+                <button
+                  type="button"
+                  class="rail-contract"
+                  data-tab="raw"
+                  id="rail-raw"
+                >
+                  <span class="rail-name">raw CSV</span>
+                  <span class="rail-meta" data-meta="raw"></span>
+                </button>
+              </li>
+              <li class="rail-step">
+                <div class="rail-module" data-stage="parser">
+                  <span class="rail-name">parser</span>
+                  <span class="badge" data-badge="parser"></span>
+                </div>
+              </li>
+              <li class="rail-step">
+                <button
+                  type="button"
+                  class="rail-contract"
+                  data-tab="parse"
+                  id="rail-parse"
+                >
+                  <span class="rail-name">Validated Data</span>
+                  <span class="rail-meta" data-meta="parse"></span>
+                </button>
+              </li>
+              <li class="rail-step">
+                <div class="rail-module" data-stage="layout">
+                  <span class="rail-name">layout</span>
+                  <span class="badge" data-badge="layout"></span>
+                </div>
+              </li>
+              <li class="rail-step">
+                <button
+                  type="button"
+                  class="rail-contract"
+                  data-tab="scene"
+                  id="rail-scene"
+                >
+                  <span class="rail-name">Scene</span>
+                  <span class="rail-meta" data-meta="scene"></span>
+                </button>
+              </li>
+              <li class="rail-step">
+                <div class="rail-module" data-stage="svg">
+                  <span class="rail-name">svg</span>
+                  <span class="badge" data-badge="svg"></span>
+                </div>
+              </li>
+              <li class="rail-step">
+                <button
+                  type="button"
+                  class="rail-contract"
+                  data-tab="svg"
+                  id="rail-svg"
+                >
+                  <span class="rail-name">&lt;svg&gt;</span>
+                  <span class="rail-meta" data-meta="svg"></span>
+                </button>
+              </li>
+            </ol>
+          </nav>
+
+          <section class="inspector" id="inspector" aria-labelledby="inspector-title">
             <header class="inspector-head">
               <div>
                 <h2 id="inspector-title"></h2>

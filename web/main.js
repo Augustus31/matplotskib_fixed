@@ -924,6 +924,8 @@ function wireSaveSvg() {
     if (!objSvg) return;
 
     const objStyledSvg = objSvg.cloneNode(true);
+    objStyledSvg.setAttribute("width", "100%");
+    objStyledSvg.setAttribute("height", "100%");
     const arrProperties = [
       "fill",
       "stroke",

@@ -571,12 +571,6 @@ input:hover {
   color: var(--ink-2);
 }
 
-.field-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
-
 /* ---------- stage ---------- */
 
 .stage {

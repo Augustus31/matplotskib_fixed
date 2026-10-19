@@ -57,8 +57,6 @@ const objState = {
   /** @type {Object<string, string>} */
   objFields: { ...ARR_DATASETS[0].objStartSpec.objFields },
   strTitle: ARR_DATASETS[0].objStartSpec.strTitle,
-  numWidth: DEFAULTS.numWidth,
-  numHeight: DEFAULTS.numHeight,
   strTab: "parse",
   /** @type {null | {strRaw: string, objParse: ParseResult, objSpec: ChartSpec, objScene: Scene | null, strSvg: string, strLayoutError: string}} */
   objRun: null,
@@ -110,17 +108,19 @@ function currentDataset() {
 
 /**
  * The ChartSpec the controls describe. Empty optional slots are left out.
+ * The chart fills the stage: its width is the canvas width, its height keeps the default ratio.
  * @returns {ChartSpec}
  */
 function currentSpec() {
+  const numWidth = byId("stage-canvas").clientWidth || DEFAULTS.numWidth;
   /** @type {ChartSpec} */
   const objSpec = {
     strChart: objState.strChart,
     objFields: Object.fromEntries(
       Object.entries(objState.objFields).filter(([, strField]) => strField),
     ),
-    numWidth: objState.numWidth,
-    numHeight: objState.numHeight,
+    numWidth,
+    numHeight: Math.round((numWidth * DEFAULTS.numHeight) / DEFAULTS.numWidth),
   };
   if (objState.strTitle.trim()) objSpec.strTitle = objState.strTitle.trim();
   return objSpec;
@@ -259,27 +259,6 @@ function renderSlots(objParse) {
 function syncInputs() {
   /** @type {HTMLInputElement} */ (byId("input-title")).value =
     objState.strTitle;
-  /** @type {HTMLInputElement} */ (byId("input-width")).value = String(
-    objState.numWidth,
-  );
-  /** @type {HTMLInputElement} */ (byId("input-height")).value = String(
-    objState.numHeight,
-  );
-}
-
-/**
- * @param {string} strId
- * @param {number} numFallback
- * @returns {number}
- */
-function readSize(strId, numFallback) {
-  const objInput = /** @type {HTMLInputElement} */ (byId(strId));
-  const numValue = Number(objInput.value);
-  const numMin = Number(objInput.min);
-  const numMax = Number(objInput.max);
-  if (!Number.isFinite(numValue) || numValue < numMin || numValue > numMax)
-    return numFallback;
-  return numValue;
 }
 
 /** @param {string} strId */
@@ -430,12 +409,8 @@ function wireControls() {
   });
   objForm.addEventListener("input", (objEvent) => {
     const objTarget = /** @type {HTMLInputElement} */ (objEvent.target);
-    if (objTarget.id === "input-title") objState.strTitle = objTarget.value;
-    else if (objTarget.id === "input-width")
-      objState.numWidth = readSize("input-width", objState.numWidth);
-    else if (objTarget.id === "input-height")
-      objState.numHeight = readSize("input-height", objState.numHeight);
-    else return;
+    if (objTarget.id !== "input-title") return;
+    objState.strTitle = objTarget.value;
     run();
   });
 }
@@ -732,6 +707,14 @@ function onStagePointer(objEvent) {
 
 function wireStage() {
   const objCanvas = byId("stage-canvas");
+  // Redraw at the new width when the canvas resizes; height changes alone are our own redraws.
+  new ResizeObserver(() => {
+    if (
+      objState.objRun &&
+      objCanvas.clientWidth !== objState.objRun.objSpec.numWidth
+    )
+      run();
+  }).observe(objCanvas);
   objCanvas.addEventListener("pointermove", onStagePointer);
   objCanvas.addEventListener("pointerleave", () => {
     byId("tooltip").hidden = true;

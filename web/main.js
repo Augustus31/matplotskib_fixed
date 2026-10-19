@@ -884,6 +884,10 @@ function renderInspector() {
   const objCopy = /** @type {HTMLButtonElement} */ (byId("copy-button"));
   objCopy.disabled = copyText() === "";
   objCopy.textContent = "Copy";
+  const objSaveSvg = /** @type {HTMLButtonElement} */ (
+    byId("save-svg-button")
+  );
+  objSaveSvg.disabled = objRun.strSvg === "";
 }
 
 function wireCopy() {
@@ -911,6 +915,54 @@ function wireCopy() {
   });
 }
 
+function wireSaveSvg() {
+  const objSaveSvg = /** @type {HTMLButtonElement} */ (
+    byId("save-svg-button")
+  );
+  objSaveSvg.addEventListener("click", () => {
+    const objSvg = byId("stage-canvas").querySelector("svg");
+    if (!objSvg) return;
+
+    const objStyledSvg = objSvg.cloneNode(true);
+    objStyledSvg.setAttribute("width", "100%");
+    objStyledSvg.setAttribute("height", "100%");
+    const arrProperties = [
+      "fill",
+      "stroke",
+      "stroke-width",
+      "stroke-linecap",
+      "stroke-linejoin",
+      "opacity",
+      "r",
+      "font-family",
+      "font-size",
+      "font-weight",
+      "font-variant-numeric",
+    ];
+    const arrOriginals = [objSvg, ...objSvg.querySelectorAll("*")];
+    const arrCopies = [objStyledSvg, ...objStyledSvg.querySelectorAll("*")];
+    arrOriginals.forEach((objOriginal, numIndex) => {
+      const objStyle = getComputedStyle(objOriginal);
+      for (const strProperty of arrProperties) {
+        arrCopies[numIndex].style.setProperty(
+          strProperty,
+          objStyle.getPropertyValue(strProperty),
+        );
+      }
+    });
+
+    const objBlob = new Blob([objStyledSvg.outerHTML], {
+      type: "image/svg+xml;charset=utf-8",
+    });
+    const strUrl = URL.createObjectURL(objBlob);
+    const objLink = document.createElement("a");
+    objLink.href = strUrl;
+    objLink.download = "chart.svg";
+    objLink.click();
+    URL.revokeObjectURL(strUrl);
+  });
+}
+
 // ---------- start ----------
 
 renderDatasets();
@@ -922,4 +974,5 @@ wireRail();
 wirePipelineToggle();
 wireStage();
 wireCopy();
+wireSaveSvg();
 selectDataset(objState.strDatasetId);

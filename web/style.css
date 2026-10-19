@@ -772,6 +772,12 @@ input:hover {
   border-bottom: 1px solid var(--rule);
 }
 
+.inspector-actions {
+  display: flex;
+  flex: none;
+  gap: 8px;
+}
+
 .inspector-head h2 {
   margin: 0;
   font-family: var(--font-code);

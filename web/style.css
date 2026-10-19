@@ -681,6 +681,11 @@ input:hover {
   stroke-width: 1.5;
 }
 
+/* This makes the circles on the line graph visible (1) or invisible (0)*/
+.stage-canvas svg circle.line-point { 
+  opacity: 0;
+}
+
 .stage-canvas svg .grid {
   stroke: var(--chart-grid);
   stroke-width: 1;

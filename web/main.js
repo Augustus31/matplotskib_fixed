@@ -40,6 +40,8 @@ const OBJ_TABS = {
 
 const NUM_HOVER_RADIUS = 18;
 const NUM_MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
+/** Most files kept in the data list, built-in or uploaded; the oldest is dropped past this. */
+const NUM_MAX_DATASETS = 5;
 const STR_PIPELINE_KEY = "matplotskib.showPipeline";
 
 /** Built-in files plus anything uploaded this session, newest upload first. */
@@ -372,6 +374,11 @@ async function addUpload(objFile) {
   };
   if (objExisting) arrDatasets.splice(arrDatasets.indexOf(objExisting), 1);
   arrDatasets.unshift(objSet);
+  // New uploads go first, so the last item is always the oldest.
+  if (arrDatasets.length > NUM_MAX_DATASETS) {
+    const objOldest = arrDatasets.pop();
+    if (objOldest) mapRaw.delete(objOldest.strId);
+  }
   mapRaw.set(objSet.strId, strRaw);
   setUploadStatus("");
   objState.strDatasetId = objSet.strId;

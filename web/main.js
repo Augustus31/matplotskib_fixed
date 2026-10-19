@@ -511,13 +511,12 @@ function pulseRail() {
   document.querySelectorAll(".rail-step").forEach((objStep, numIndex) => {
     const objEl = /** @type {HTMLElement} */ (objStep);
     objEl.classList.remove("is-pulsing");
-    boolStopped ||= Boolean(
-      objEl.querySelector('[data-state="skipped"], [data-state="error"]'),
-    );
     if (boolStopped) return;
     objEl.style.setProperty("--pulse-delay", `${numIndex * 45}ms`);
     void objEl.offsetWidth;
     objEl.classList.add("is-pulsing");
+    // will pulse the component that failed
+    boolStopped = Boolean(objEl.querySelector('[data-state="error"]'));
   });
 }
 

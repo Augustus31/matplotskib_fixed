@@ -684,7 +684,7 @@ input:hover {
 }
 
 /* This makes the circles on the line graph visible (1) or invisible (0)*/
-.stage-canvas svg circle.line-point { 
+.stage-canvas svg circle.line-point {
   opacity: 0;
 }
 

@@ -14,13 +14,26 @@ const NUM_POINT_RADIUS = 4;
 export function buildScatter(objParse, objSpec, _objFrame, objScales) {
   const strXField = objSpec.objFields.x;
   const strYField = objSpec.objFields.y;
+  const strSeriesField = objSpec.objFields.series;
+  const arrSeries = strSeriesField
+    ? [
+        ...new Set(
+          objParse.arrRows.map((objRow) => String(objRow[strSeriesField])),
+        ),
+      ]
+    : [];
+  const mapSeries = new Map(
+    arrSeries.map((strSeries, numIndex) => [strSeries, numIndex]),
+  );
 
   return objParse.arrRows.map((objRow) => ({
     strKind: SCENE_KINDS.CIRCLE,
     numX: objScales.fnX(objRow[strXField]),
     numY: objScales.fnY(/** @type {number} */ (objRow[strYField])),
     numR: NUM_POINT_RADIUS,
-    strClass: "point",
+    strClass: strSeriesField
+      ? `point series-${mapSeries.get(String(objRow[strSeriesField]))}`
+      : "point",
   }));
 }
 
@@ -30,6 +43,7 @@ export const objScatter = {
   arrSlots: [
     { strSlot: "x", arrTypes: [COLUMN_TYPES.NUMBER] },
     { strSlot: "y", arrTypes: [COLUMN_TYPES.NUMBER] },
+    { strSlot: "series", arrTypes: [COLUMN_TYPES.CATEGORY], bOptional: true },
   ],
   fnBuild: buildScatter,
 };

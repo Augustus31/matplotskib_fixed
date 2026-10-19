@@ -29,8 +29,8 @@ function groupRows(objParse, strSeriesField) {
 }
 
 /**
- * Build one polyline per series, plus a dot per row for tooltips. Each line's
- * points are sorted by their x pixel position,
+ * Build one polyline per series. Points are sorted by their x pixel position,
+ * so each line runs left to right. Tooltip circles retain input row order.
  * Points with the same x keep their input order.
  * @param {import("../contracts.js").ParseResult} objParse
  * @param {import("../contracts.js").ChartSpec} objSpec
@@ -43,13 +43,11 @@ export function buildLine(objParse, objSpec, _objFrame, objScales) {
   const strYField = objSpec.objFields.y;
   const strSeriesField = objSpec.objFields.series;
   const arrGroups = groupRows(objParse, strSeriesField);
-
-  // Build connecting lines
   const arrLines = arrGroups.map((arrRows, numSeries) => {
     const arrPoints = arrRows
       .map((objRow) => [
         objScales.fnX(objRow[strXField]),
-        objScales.fnY(Number(objRow[strYField])),
+        objScales.fnY(/** @type {number} */ (objRow[strYField])),
       ])
       .sort((arrA, arrB) => arrA[0] - arrB[0]);
 
@@ -60,11 +58,11 @@ export function buildLine(objParse, objSpec, _objFrame, objScales) {
     };
   });
 
-  // Added the scatter points so tooltips can be shown on the line plot too
+  // Reuse scatter's row order and series classes for tooltip targets.
   const arrDots = buildScatter(objParse, objSpec, _objFrame, objScales).map(
     (objPoint) => ({
       ...objPoint,
-      strClass: "point line-point",
+      strClass: `${objPoint.strClass} line-point`,
     }),
   );
 
@@ -78,7 +76,7 @@ export function buildLine(objParse, objSpec, _objFrame, objScales) {
 export const objLine = {
   strName: "line",
   arrSlots: [
-    { strSlot: "x", arrTypes: [COLUMN_TYPES.CATEGORY, COLUMN_TYPES.NUMBER] },
+    { strSlot: "x", arrTypes: [COLUMN_TYPES.NUMBER] },
     { strSlot: "y", arrTypes: [COLUMN_TYPES.NUMBER] },
     { strSlot: "series", arrTypes: [COLUMN_TYPES.CATEGORY], bOptional: true },
   ],

@@ -44,13 +44,15 @@ const objSpec = {
   },
 };
 
+/** Read polylines separately from the circles used for line tooltips. */
+function buildLines(...arrArgs) {
+  return objLine
+    .fnBuild(...arrArgs)
+    .filter((objItem) => objItem.strKind === "polyline");
+}
+
 test("connects numeric x values in ascending order when series is omitted", () => {
-  const arrItems = getChart("line").fnBuild(
-    objParse,
-    objSpec,
-    objFrame,
-    objScales,
-  );
+  const arrItems = buildLines(objParse, objSpec, objFrame, objScales);
 
   assert.equal(arrItems.length, 1);
   assert.equal(arrItems[0].strKind, "polyline");
@@ -68,7 +70,7 @@ test("registers line with x, y and optional series slots", () => {
   assert.deepEqual(objLine.arrSlots, [
     {
       strSlot: "x",
-      arrTypes: ["category", "number"],
+      arrTypes: ["number"],
     },
     {
       strSlot: "y",
@@ -109,7 +111,7 @@ const objSeriesSpec = {
 };
 
 test("sorts numeric x within each series and keeps series order", () => {
-  const arrItems = getChart("line").fnBuild(
+  const arrItems = buildLines(
     objSeriesParse,
     objSeriesSpec,
     objFrame,
@@ -136,7 +138,7 @@ test("sorts numeric x within each series and keeps series order", () => {
   ]);
 });
 
-test("maps category x values through the x scale", () => {
+test("internal builder maps generic scale positions (public category axes are rejected)", () => {
   /** @type {import("../src/contracts.js").ParseResult} */
   const objCategoryParse = {
     arrColumns: [
@@ -172,7 +174,7 @@ test("maps category x values through the x scale", () => {
     fnY: (value) => 200 - value,
   };
 
-  const arrItems = getChart("line").fnBuild(
+  const arrItems = buildLines(
     objCategoryParse,
     objCategorySpec,
     objFrame,
@@ -193,7 +195,7 @@ test("maps category x values through the x scale", () => {
 });
 
 test("returns no lines when there are no rows", () => {
-  const arrItems = getChart("line").fnBuild(
+  const arrItems = buildLines(
     {
       ...objParse,
       arrRows: [],
@@ -206,7 +208,7 @@ test("returns no lines when there are no rows", () => {
   assert.deepEqual(arrItems, []);
 });
 
-test("sorts category x by axis position within each series", () => {
+test("internal sorter orders generic scale positions within each series", () => {
   /** @type {import("../src/contracts.js").ParseResult} */
   const objCategorySeriesParse = {
     arrColumns: [
@@ -233,7 +235,7 @@ test("sorts category x by axis position within each series", () => {
     fnY: (value) => 200 - value,
   };
 
-  const arrItems = getChart("line").fnBuild(
+  const arrItems = buildLines(
     objCategorySeriesParse,
     {
       strChart: "line",
@@ -261,7 +263,7 @@ test("sorts category x by axis position within each series", () => {
 });
 
 test("points with the same x keep their input order", () => {
-  const arrItems = getChart("line").fnBuild(
+  const arrItems = buildLines(
     {
       ...objParse,
       arrRows: [
@@ -285,7 +287,47 @@ test("points with the same x keep their input order", () => {
 test("does not reorder the parsed rows", () => {
   const arrRowsBefore = structuredClone(objParse.arrRows);
 
-  getChart("line").fnBuild(objParse, objSpec, objFrame, objScales);
+  buildLines(objParse, objSpec, objFrame, objScales);
 
   assert.deepEqual(objParse.arrRows, arrRowsBefore);
+});
+
+test("line tooltip circles keep original row order and series classes", () => {
+  const arrBefore = structuredClone(objSeriesParse.arrRows);
+  const arrItems = objLine.fnBuild(
+    objSeriesParse,
+    objSeriesSpec,
+    objFrame,
+    objScales,
+  );
+  const arrDots = arrItems.filter((objItem) => objItem.strKind === "circle");
+  assert.equal(arrItems.length, 6);
+  assert.deepEqual(
+    arrDots.map((objItem) => [objItem.numX, objItem.numY]),
+    [
+      [20, 97],
+      [20, 93],
+      [10, 98],
+      [10, 96],
+    ],
+  );
+  assert.deepEqual(
+    arrDots.map((objItem) => objItem.strClass),
+    [
+      "point series-0 line-point",
+      "point series-1 line-point",
+      "point series-0 line-point",
+      "point series-1 line-point",
+    ],
+  );
+  assert.deepEqual(objSeriesParse.arrRows, arrBefore);
+});
+
+test("ungrouped line tooltip circles retain the ungrouped scatter class", () => {
+  const arrItems = objLine.fnBuild(objParse, objSpec, objFrame, objScales);
+  const arrDots = arrItems.filter((objItem) => objItem.strKind === "circle");
+  assert.equal(arrDots.length, 3);
+  assert.ok(
+    arrDots.every((objItem) => objItem.strClass === "point line-point"),
+  );
 });

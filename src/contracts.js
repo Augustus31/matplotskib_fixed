@@ -117,7 +117,7 @@ export const DEFAULTS = Object.freeze({
 /**
  * A pluggable chart type. Adding a chart means adding one of these and registering it.
  * fnBuild returns only the chart's own marks. Axes, ticks and titles stay in layout.
- * Warmup charts: "scatter" takes number x and number y; "line" takes category or number x and number y.
+ * Warmup charts: "scatter" and "line" take numeric x/y and optional category series.
  * @example
  * registerChart({
  *   strName: "scatter",

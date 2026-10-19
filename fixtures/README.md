@@ -9,7 +9,8 @@ Mock CSV inputs for the parser. Data is static and immutable: no uploads, no edi
 - Numbers are bare: no units, no thousands separators, no `$`.
 - No empty cells. Drop the row instead.
 - One chart per file. Files need not be related to each other.
-- Rows meant for a line chart are sorted by the x column within each series. Layout does not sort.
+- Both charts require numeric X/Y columns; category columns are only for optional series grouping.
+- The line builder sorts vertices by X within each series. Scatter points and parsed rows retain input order.
 - Column names mean nothing to the library. The chart spec maps slots to columns, for example `{x: "day", y: "bugs", series: "agent"}`. The same CSV can feed a line chart or a scatter plot.
 
 ## Current fixtures

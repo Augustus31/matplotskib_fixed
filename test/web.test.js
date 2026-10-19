@@ -33,6 +33,30 @@ test("web pipeline draws the fixture as a scatter with one point per row", () =>
   assert.equal(renderSvg(objScene).match(/<circle/g)?.length, 15);
 });
 
+test("grouped scatter retains the line palette indices through the real pipeline", () => {
+  const objParse = parse(readText("fixtures/agents-vs-bugs.csv"));
+  const arrBefore = structuredClone(objParse.arrRows);
+  for (const strChart of ["line", "scatter", "line"]) {
+    const objScene = layout(objParse, {
+      strChart,
+      objFields: { x: "day", y: "bugs", series: "agent" },
+    });
+    const strSvg = renderSvg(objScene);
+    for (let numSeries = 0; numSeries < 3; numSeries += 1) {
+      assert.equal(
+        strSvg.match(
+          new RegExp(
+            `class="${strChart === "line" ? "line" : "point"} series-${numSeries}"`,
+            "g",
+          ),
+        )?.length,
+        strChart === "line" ? 1 : 5,
+      );
+    }
+    assert.deepEqual(objParse.arrRows, arrBefore);
+  }
+});
+
 test("the broken sample fails in the parser, so the page shows errors", () => {
   const objParse = parse(readText("web/samples/broken.csv"));
   assert.equal(objParse.arrErrors.length, 2);
@@ -47,7 +71,7 @@ test("layout rejects a column of the wrong type with a plain message", () => {
         strChart: "scatter",
         objFields: { x: "agent", y: "bugs" },
       }),
-    /"x" takes number, but agent is category/,
+    /X and Y axes require numeric columns/,
   );
 });
 
@@ -66,11 +90,11 @@ test("an upload with only number columns starts as a scatter", () => {
   assert.deepEqual(guessSpec(objParse).objFields, { x: "height", y: "weight" });
 });
 
-test("an upload with one category and one number starts as a line over the category", () => {
+test("an upload with one numeric column leaves the second axis unselected", () => {
   const objParse = parse("weekday,minutes\nMon,14\nTue,22");
   assert.deepEqual(guessSpec(objParse), {
     strChart: "line",
-    objFields: { x: "weekday", y: "minutes" },
+    objFields: { x: "minutes" },
     strTitle: "",
   });
 });
@@ -84,6 +108,41 @@ test("an upload with no number column leaves the slots empty", () => {
   assert.deepEqual(guessSpec(parse("a,b\nx,y")).objFields, {});
 });
 
+test("one numeric column without categories also leaves the other axis empty", () => {
+  assert.deepEqual(guessSpec(parse("value\n1\n2")).objFields, { x: "value" });
+});
+
+for (const strChart of ["line", "scatter"]) {
+  for (const strAxis of ["x", "y"]) {
+    test(`${strChart} layout rejects category ${strAxis} before building marks`, () => {
+      const objParse = parse(readText("fixtures/agents-vs-bugs.csv"));
+      assert.throws(
+        () =>
+          layout(objParse, {
+            strChart,
+            objFields: { x: "day", y: "bugs", [strAxis]: "agent" },
+          }),
+        {
+          message:
+            "X and Y axes require numeric columns. Category columns can only be used for series.",
+        },
+      );
+    });
+  }
+  test(`${strChart} preserves missing and unknown field errors`, () => {
+    const objParse = parse("day,bugs\n1,4\n2,6");
+    assert.throws(
+      () => layout(objParse, { strChart, objFields: { x: "day" } }),
+      /needs a column for "y"/,
+    );
+    assert.throws(
+      () =>
+        layout(objParse, { strChart, objFields: { x: "day", y: "missing" } }),
+      /no column named "missing"/,
+    );
+  });
+}
+
 test("whole-number data gets whole-number ticks", () => {
   const objParse = parse("month,rain\n1,49\n2,36\n3,47");
   const strSvg = renderSvg(
@@ -96,11 +155,11 @@ test("whole-number data gets whole-number ticks", () => {
 });
 
 test("a line chart draws without the optional series slot", () => {
-  const objParse = parse(readText("web/samples/ci-minutes.csv"));
+  const objParse = parse(readText("web/samples/review-times.csv"));
   const strSvg = renderSvg(
     layout(objParse, {
       strChart: "line",
-      objFields: { x: "weekday", y: "minutes" },
+      objFields: { x: "linesChanged", y: "minutesToReview" },
     }),
   );
   assert.equal(strSvg.match(/<polyline[^>]*class="line/g)?.length, 1);

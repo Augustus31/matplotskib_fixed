@@ -57,9 +57,9 @@ test("fixture to line: one line per agent", () => {
 });
 
 test("fixture to line: one line when there is no series", () => {
-  const strSvg = renderChart("weekday,minutes\nMon,14\nTue,22\nWed,19", {
+  const strSvg = renderChart("day,minutes\n1,14\n2,22\n3,19", {
     strChart: "line",
-    objFields: { x: "weekday", y: "minutes" },
+    objFields: { x: "day", y: "minutes" },
   });
   assert.equal(countMarks(strSvg).numLines, 1);
 });
@@ -89,7 +89,7 @@ test("error: wrong column type", () => {
         strChart: "scatter",
         objFields: { x: "agent", y: "bugs" },
       }),
-    /"x" takes number, but agent is category/,
+    /X and Y axes require numeric columns/,
   );
 });
 
@@ -113,4 +113,39 @@ test("error: parser errors surface as a thrown error naming the row", () => {
       }),
     /the data has errors: row 3: expected 3 fields, found 2/,
   );
+});
+
+test("interleaved string series share palette indices while lines sort independently", () => {
+  const strCsv = "agent,x,y\nMon,3,9\nTue,2,5\nMon,1,4\nTue,1,7\nMon,1,6";
+  for (const strChart of ["line", "scatter", "line"]) {
+    const strSvg = renderChart(strCsv, {
+      strChart,
+      objFields: { x: "x", y: "y", series: "agent" },
+    });
+    if (strChart === "scatter") {
+      assert.deepEqual(
+        [...strSvg.matchAll(/class="point series-(\d)"/g)].map(
+          (arrMatch) => arrMatch[1],
+        ),
+        ["0", "1", "0", "1", "0"],
+      );
+    } else {
+      const arrLines = [
+        ...strSvg.matchAll(
+          /<polyline points="([^"]+)"[^>]*class="line series-\d"/g,
+        ),
+      ];
+      assert.equal(arrLines.length, 2);
+      for (const arrLine of arrLines) {
+        const arrXs = arrLine[1]
+          .split(" ")
+          .map((strPoint) => Number(strPoint.split(",")[0]));
+        assert.ok(
+          arrXs.every(
+            (numX, numIndex) => numIndex === 0 || arrXs[numIndex - 1] <= numX,
+          ),
+        );
+      }
+    }
+  }
 });

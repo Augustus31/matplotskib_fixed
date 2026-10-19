@@ -16,6 +16,8 @@ const strSvg = renderChart(strCsv, {
 
 `renderChart` returns SVG markup. If the chart can't be drawn, for example the CSV has bad rows or a column doesn't fit its slot, it throws an `Error` with a plain message.
 
+Both chart types require numeric X and Y columns and accept an optional category `series` for grouping. Switching between them preserves compatible field choices. Line vertices are sorted by X within each series; scatter points retain CSV row order.
+
 ## Pipeline
 
 ```

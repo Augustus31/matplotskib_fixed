@@ -28,11 +28,13 @@ Then open `/web/` on the port it prints. `python3 -m http.server` from the repo 
 
 - `../fixtures/agents-vs-bugs.csv` is the shared fixture.
 - Uploads are added to the top of the list for the current session.
-- `samples/` holds page-only files: a number-by-number scatter, a category x axis, and a file with two bad rows that shows the parser error state. Move any of them to `fixtures/` if the tests want them.
+- `samples/` holds page-only files: a numeric scatter, `ci-minutes.csv` with an incompatible weekday axis, and a file with two bad rows that shows the parser error state. Both charts require numeric X/Y; string labels can only group series. The weekday sample deliberately shows the numeric-axis validation message in both modes.
 
 ## Upload your own CSV
 
 Use **Upload a CSV** in the Data panel, or drop a file anywhere on the page. The file is read in the browser and never sent anywhere. It goes through the same `parseCsv`, so bad rows show the same error view as `broken.csv`. The page picks a starting chart from the column types (`guessSpec` in `datasets.js`), and you can change it from there. Files up to 5 MB; uploading a file with the same name replaces it.
+
+Automatic setup needs two distinct numeric columns. With fewer, an axis stays unselected and the page explains the requirement. You may explicitly choose the same numeric column for both axes. Valid X/Y/series choices, including series None, survive chart switches.
 
 ## How the page styles a Scene
 
@@ -44,6 +46,6 @@ Layout and chart types set `strClass`; `style.css` gives them color.
 
 ## Open questions for the module owners
 
-1. **Line tooltips.** Hover needs a circle and the row it came from. The line chart draws only polylines, so line charts have no point dots and no tooltips. Scatter tooltips work because scatter draws one circle per row, in row order. Line tooltips would need circles from `src/charts/line.js` and a row index on `SceneCircle` (`numRowIndex`, which `renderSvg` would ignore).
+1. **Tooltip row mapping.** Both charts emit one circle per original row. Line circles carry `line-point` and are invisible tooltip targets; only the connecting polyline vertices are sorted. Preserve circle row order and series classes when changing either builder.
 2. **List charts.** The registry has no list call, so the chart picker hard-codes `["scatter", "line"]` in `web/pipeline.js`.
 3. **Text.** `SceneText` has no rotation or vertical alignment. The y-axis label sits horizontally above the axis, and labels are nudged down 4px to sit centered.

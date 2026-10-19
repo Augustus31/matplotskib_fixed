@@ -23,19 +23,14 @@ const OBJ_TABS = {
     strRole: "The file as it sits on disk. Input to the parser.",
   },
   parse: {
-    strTitle: "ParseResult",
+    strTitle: "Validated Data",
     strRole:
-      "Made by the parser, read by layout. Columns, one object per row, and any errors.",
-  },
-  spec: {
-    strTitle: "ChartSpec",
-    strRole:
-      "Built from the controls on the left. Says which chart and which column fills each slot.",
+      "Output from parser, input to layout. First row are the labels and consecutive rows are the data.",
   },
   scene: {
     strTitle: "Scene",
     strRole:
-      "Made by layout, read by svg. Plain data with pixel positions, no DOM.",
+      "Output from layout, input to svg. Graph data with pixel positions for points and lines.",
   },
   svg: {
     strTitle: "<svg>",
@@ -45,6 +40,7 @@ const OBJ_TABS = {
 
 const NUM_HOVER_RADIUS = 18;
 const NUM_MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
+const STR_PIPELINE_KEY = "matplotskib.showPipeline";
 
 /** Built-in files plus anything uploaded this session, newest upload first. */
 const arrDatasets = [...ARR_DATASETS];
@@ -481,7 +477,6 @@ function renderRail() {
       ? plural(objParse.arrErrors.length, "error")
       : `${plural(objParse.arrRows.length, "row")}, ${plural(objParse.arrColumns.length, "column")}`,
   );
-  setMeta("spec", objRun.objSpec.strChart);
   setMeta(
     "scene",
     objScene ? plural(objScene.arrItems.length, "item") : "none",
@@ -517,12 +512,17 @@ function renderRail() {
 /** One short highlight that walks the rail left to right after each run. */
 function pulseRail() {
   if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  let boolStopped = false;
+  if (!isPipelineShown()) return;
   document.querySelectorAll(".rail-step").forEach((objStep, numIndex) => {
     const objEl = /** @type {HTMLElement} */ (objStep);
     objEl.classList.remove("is-pulsing");
+    if (boolStopped) return;
     objEl.style.setProperty("--pulse-delay", `${numIndex * 45}ms`);
     void objEl.offsetWidth;
     objEl.classList.add("is-pulsing");
+    // will pulse the component that failed
+    boolStopped = Boolean(objEl.querySelector('[data-state="error"]'));
   });
 }
 
@@ -536,6 +536,44 @@ function wireRail() {
       /** @type {HTMLElement} */ (objButton).dataset.tab ?? "parse";
     renderRail();
     renderInspector();
+  });
+}
+
+// ---------- pipeline toggle ----------
+
+function isPipelineShown() {
+  return (
+    /** @type {HTMLElement} */ (document.querySelector(".page")).dataset
+      .pipeline === "shown"
+  );
+}
+
+/** @param {boolean} boolShown */
+function setPipelineShown(boolShown) {
+  const objPage = /** @type {HTMLElement} */ (document.querySelector(".page"));
+  objPage.dataset.pipeline = boolShown ? "shown" : "hidden";
+  const objToggle = byId("pipeline-toggle");
+  objToggle.setAttribute("aria-expanded", String(boolShown));
+  objToggle.textContent = boolShown ? "Hide pipeline" : "Show pipeline";
+  try {
+    localStorage.setItem(STR_PIPELINE_KEY, String(boolShown));
+  } catch {
+    // storage blocked: the choice just won't survive a reload
+  }
+}
+
+/** Hidden by default; the masthead button shows the rail and inspector. */
+function wirePipelineToggle() {
+  let boolSaved = false;
+  try {
+    boolSaved = localStorage.getItem(STR_PIPELINE_KEY) === "true";
+  } catch {
+    // storage blocked: fall back to hidden
+  }
+  setPipelineShown(boolSaved);
+  byId("pipeline-toggle").addEventListener("click", () => {
+    setPipelineShown(!isPipelineShown());
+    pulseRail();
   });
 }
 
@@ -734,8 +772,6 @@ function copyText() {
       return objRun.strRaw;
     case "parse":
       return JSON.stringify(objRun.objParse, null, 2);
-    case "spec":
-      return JSON.stringify(objRun.objSpec, null, 2);
     case "scene":
       return objRun.objScene ? formatScene(objRun.objScene) : "";
     default:
@@ -779,31 +815,30 @@ function parseView(objParse) {
   return `<h3 class="sub">arrColumns</h3><ul class="column-list">${strColumns}</ul>${strErrors}${strTable}`;
 }
 
-/** @param {ChartSpec} objSpec */
-function specView(objSpec) {
-  const strCall = [
-    `const objParse = parseCsv(strCsv);`,
-    `const objScene = fnLayout(objParse, objSpec);`,
-    `const strSvg = renderSvg(objScene);`,
-  ].join("\n");
-  return `<pre class="code">${escapeHtml(JSON.stringify(objSpec, null, 2))}</pre>
-    <h3 class="sub">How the page calls the library</h3>
-    <pre class="code">${escapeHtml(strCall)}</pre>
-    <p class="muted">The page calls each stage itself so the inspector can show every output. Other code uses renderChart from src/index.js (#18), which runs all three.</p>`;
-}
-
 /** @param {Scene} objScene */
 function sceneView(objScene) {
+  const LAYOUT_LABELS = {
+    grid: "gridline",
+    tick: "tick mark",
+    "tick-label": "tick label",
+    axis: "axis line",
+    "axis-label": "axis label",
+    title: "title",
+    point: "data point",
+    line: "data line",
+  };
+
   /** @type {Object<string, number>} */
   const objCounts = {};
   for (const objItem of objScene.arrItems) {
-    objCounts[objItem.strKind] = (objCounts[objItem.strKind] ?? 0) + 1;
+    const strBase = objItem.strClass.split(" ")[0];
+    objCounts[strBase] = (objCounts[strBase] ?? 0) + 1;
   }
-  const strCounts = Object.values(SCENE_KINDS)
-    .map(
-      (strKind) =>
-        `<li><span class="count">${objCounts[strKind] ?? 0}</span> <code>${strKind}</code></li>`,
-    )
+  const strCounts = Object.entries(objCounts)
+    .map(([strClass, numCount]) => {
+      const strLabel = LAYOUT_LABELS[strClass] ?? strClass;
+      return `<li><span class="count">${numCount}</span> ${strLabel}${numCount === 1 ? "" : "s"}</li>`;
+    })
     .join("");
   return `<ul class="count-list">${strCounts}</ul><pre class="code">${escapeHtml(formatScene(objScene))}</pre>`;
 }
@@ -829,9 +864,6 @@ function renderInspector() {
       break;
     case "parse":
       strHtml = parseView(objRun.objParse);
-      break;
-    case "spec":
-      strHtml = specView(objRun.objSpec);
       break;
     case "scene":
       strHtml = objRun.objScene
@@ -884,6 +916,7 @@ syncInputs();
 wireControls();
 wireUpload();
 wireRail();
+wirePipelineToggle();
 wireStage();
 wireCopy();
 selectDataset(objState.strDatasetId);

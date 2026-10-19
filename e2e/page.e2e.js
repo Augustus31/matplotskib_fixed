@@ -317,3 +317,76 @@ test("uploads need two numeric initial axes and replacement uploads reset mappin
   assert.equal(await objPage.locator("circle.point").count(), 2);
   assert.deepEqual(arrProblems, []);
 });
+
+test("the pipeline is hidden until the toggle shows it, and stays shown on reload", async () => {
+  const objToggle = objPage.locator("#pipeline-toggle");
+  assert.equal(await objPage.locator("#rail-wrap").isVisible(), false);
+  assert.equal(await objPage.locator("#inspector").isVisible(), false);
+
+  await objToggle.click();
+  assert.equal(await objPage.locator("#rail-wrap").isVisible(), true);
+  assert.equal(await objPage.locator("#inspector").isVisible(), true);
+  assert.equal(await objToggle.getAttribute("aria-expanded"), "true");
+
+  await objPage.reload();
+  await objPage.locator("#stage-canvas svg").first().waitFor();
+  assert.equal(await objPage.locator("#rail-wrap").isVisible(), true);
+
+  await objToggle.click();
+  assert.equal(await objPage.locator("#rail-wrap").isVisible(), false);
+  assert.deepEqual(arrProblems, []);
+});
+
+test("interleaved line tooltips retain row identity and group classes across switches", async () => {
+  await objPage.locator("#input-file").setInputFiles({
+    name: "interleaved-tooltip.csv",
+    mimeType: "text/csv",
+    buffer: Buffer.from("team,x,y\nBeta,2,3\nAlpha,2,7\nBeta,1,2\nAlpha,1,4"),
+  });
+  await objPage
+    .locator("#slot-series option[value='team']")
+    .waitFor({ state: "attached" });
+  for (const strChart of ["line", "scatter", "line"]) {
+    await objPage.locator(`label[for='chart-${strChart}']`).click();
+    const objDots = objPage.locator("#stage-canvas circle.point");
+    assert.equal(await objDots.count(), 4);
+    assert.deepEqual(
+      await objDots.evaluateAll((arrEls) =>
+        arrEls.map((objEl) => objEl.getAttribute("class")),
+      ),
+      [0, 1, 0, 1].map(
+        (numSeries) =>
+          `point series-${numSeries}${strChart === "line" ? " line-point" : ""}`,
+      ),
+    );
+    if (strChart === "line") {
+      assert.equal(
+        await objDots
+          .first()
+          .evaluate((objEl) => getComputedStyle(objEl).opacity),
+        "0",
+      );
+      assert.equal(await objPage.locator("polyline.line").count(), 2);
+    }
+    await objDots.nth(2).hover({ force: true });
+    assert.equal(await objPage.locator("#tooltip").isVisible(), true);
+    assert.equal(
+      await objPage.locator("#tooltip .tip-head").textContent(),
+      "Beta",
+    );
+    assert.deepEqual(await objPage.locator("#tooltip b").allTextContents(), [
+      "1",
+      "2",
+    ]);
+    await objDots.nth(1).hover({ force: true });
+    assert.equal(
+      await objPage.locator("#tooltip .tip-head").textContent(),
+      "Alpha",
+    );
+    assert.deepEqual(await objPage.locator("#tooltip b").allTextContents(), [
+      "2",
+      "7",
+    ]);
+  }
+  assert.deepEqual(arrProblems, []);
+});

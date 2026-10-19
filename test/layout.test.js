@@ -88,7 +88,7 @@ test("builds a scene with axes first and the chart's marks after", () => {
   ]);
 });
 
-test("draws a gridline and label for each y tick, covering the data", () => {
+test("draws a gridline for each y tick and a vertical guide at each x tick", () => {
   const objScene = fnLayout(objBugs, {
     strChart: "stub",
     objFields: { x: "day", y: "bugs" },
@@ -109,7 +109,7 @@ test("draws a gridline and label for each y tick, covering the data", () => {
     "4",
     "5",
   ]);
-  assert.equal(arrGrid.length, 6);
+  assert.equal(arrGrid.length, 20);
 });
 
 test("gridlines line up with the marks at the same value", () => {

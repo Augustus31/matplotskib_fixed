@@ -147,7 +147,31 @@ pre {
   font-size: 14px;
 }
 
+.pipeline-toggle {
+  margin-left: auto;
+  align-self: center;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 5px 12px;
+  border-radius: var(--radius-control);
+  border: 1.5px solid var(--rule);
+  background: var(--sheet);
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.pipeline-toggle:hover {
+  border-color: var(--ink-3);
+}
+
 /* ---------- pipeline rail ---------- */
+
+/* rail and inspector stay hidden until the masthead toggle shows them */
+.page[data-pipeline="hidden"] .rail-wrap,
+.page[data-pipeline="hidden"] .inspector {
+  display: none;
+}
 
 .page > * {
   min-width: 0;
@@ -182,28 +206,6 @@ pre {
       1.5px no-repeat,
     conic-gradient(from 225deg at 100% 50%, var(--ink-3) 90deg, transparent 0)
       right center / 6px 10px no-repeat;
-}
-
-.rail-pair {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 6px;
-  position: relative;
-  padding-right: 14px;
-}
-
-/* bracket that merges ParseResult and ChartSpec into layout */
-.rail-pair::after {
-  content: "";
-  position: absolute;
-  right: 0;
-  top: 25%;
-  bottom: 25%;
-  width: 14px;
-  border: 1.5px solid var(--ink-3);
-  border-left: 0;
-  border-radius: 0 6px 6px 0;
 }
 
 .rail-contract,
@@ -585,9 +587,9 @@ input:hover {
   border: 1px solid var(--rule);
   border-radius: 4px;
   background-color: var(--sheet);
-  background-image:
+  /*background-image:
     linear-gradient(var(--grid-fine) 1px, transparent 1px),
-    linear-gradient(90deg, var(--grid-fine) 1px, transparent 1px);
+    linear-gradient(90deg, var(--grid-fine) 1px, transparent 1px);*/
   background-size: 16px 16px;
   background-position: -1px -1px;
   min-height: 300px;
@@ -679,6 +681,11 @@ input:hover {
   r: 6px;
   stroke: var(--ink);
   stroke-width: 1.5;
+}
+
+/* This makes the circles on the line graph visible (1) or invisible (0)*/
+.stage-canvas svg circle.line-point {
+  opacity: 0;
 }
 
 .stage-canvas svg .grid {

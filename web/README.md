@@ -1,6 +1,6 @@
 # Workbench (frontend)
 
-The browser page for matplotskib. Pick a data file, choose a chart, map columns to the chart's slots, and see the SVG. The pipeline rail across the top shows each contract (`ParseResult`, `ChartSpec`, `Scene`, `<svg>`); click one to inspect it.
+The browser page for matplotskib. Pick a data file, choose a chart, map columns to the chart's slots, and see the SVG. The pipeline rail across the top shows each contract (`ParseResult`, `ChartSpec`, `Scene`, `<svg>`); click one to inspect it. The rail and inspector are hidden by default; **Show pipeline** in the header brings them back, and the page remembers the choice in this browser.
 
 ## Run it
 
@@ -46,6 +46,6 @@ Layout and chart types set `strClass`; `style.css` gives them color.
 
 ## Open questions for the module owners
 
-1. **Line tooltips.** Hover needs a circle and the row it came from. The line chart draws only polylines, so line charts have no point dots and no tooltips. Scatter tooltips work because scatter draws one circle per row, in row order. Line tooltips would need circles from `src/charts/line.js` and a row index on `SceneCircle` (`numRowIndex`, which `renderSvg` would ignore).
+1. **Tooltip row mapping.** Both charts emit one circle per original row. Line circles carry `line-point` and are invisible tooltip targets; only the connecting polyline vertices are sorted. Preserve circle row order and series classes when changing either builder.
 2. **List charts.** The registry has no list call, so the chart picker hard-codes `["scatter", "line"]` in `web/pipeline.js`.
 3. **Text.** `SceneText` has no rotation or vertical alignment. The y-axis label sits horizontally above the axis, and labels are nudged down 4px to sit centered.

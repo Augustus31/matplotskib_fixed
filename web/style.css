@@ -350,12 +350,32 @@ pre {
   display: grid;
   gap: 18px;
   min-width: 0;
-  order: -1;
 }
 
-@media (min-width: 900px) {
+@media (width < 900px) {
+  .workbench > .controls,
   .output {
-    order: 0;
+    display: contents;
+  }
+
+  .stage {
+    order: 1;
+  }
+
+  .settings {
+    order: 2;
+  }
+
+  .controls > .group {
+    order: 3;
+  }
+
+  .rail-wrap {
+    order: 4;
+  }
+
+  .inspector {
+    order: 5;
   }
 }
 

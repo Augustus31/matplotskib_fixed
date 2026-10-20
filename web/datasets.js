@@ -21,9 +21,6 @@ import { COLUMN_TYPES } from "../src/contracts.js";
  * @property {string} strTitle
  */
 
-/** Series colors the page has. A category column with more values than this is not a series. */
-const NUM_MAX_SERIES = 4;
-
 /** @type {Dataset[]} */
 export const ARR_DATASETS = [
   {
@@ -92,8 +89,8 @@ export async function loadRaw(objDataset) {
 
 /**
  * Pick a starting chart for a file the page has not seen, such as an upload.
- * Two number columns make a scatter, or a line per series when a category column has a few
- * values. Axes need distinct numeric columns; slots it can't fill are left empty.
+ * Two number columns make a scatter, or a line per series when a category column has two or
+ * more values. Axes need distinct numeric columns; slots it can't fill are left empty.
  * @param {ParseResult} objParse
  * @returns {StartSpec}
  */
@@ -108,7 +105,7 @@ export function guessSpec(objParse) {
     const numValues = new Set(
       objParse.arrRows.map((objRow) => objRow[objCol.strField]),
     ).size;
-    return numValues >= 2 && numValues <= NUM_MAX_SERIES;
+    return numValues >= 2;
   });
   if (arrNumbers.length >= 2 && objSeries) {
     return {

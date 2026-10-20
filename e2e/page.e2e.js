@@ -38,6 +38,7 @@ let objBrowser;
 let objPage;
 /** Script errors, console errors and failed requests seen while the page runs. */
 const arrProblems = [];
+const arrDialogs = [];
 
 before(async () => {
   await new Promise((fnResolve) => objServer.listen(0, "127.0.0.1", fnResolve));
@@ -47,6 +48,10 @@ before(async () => {
   objBrowser = await chromium.launch();
   objPage = await objBrowser.newPage();
   objPage.on("pageerror", (objError) => arrProblems.push(objError.message));
+  objPage.on("dialog", async (objDialog) => {
+    arrDialogs.push(objDialog.message());
+    await objDialog.dismiss();
+  });
   objPage.on("console", (objMessage) => {
     if (objMessage.type() === "error") arrProblems.push(objMessage.text());
   });
@@ -369,6 +374,7 @@ test("interleaved line tooltips retain row identity and group classes across swi
     mimeType: "text/csv",
     buffer: Buffer.from("team,x,y\nBeta,2,3\nAlpha,2,7\nBeta,1,2\nAlpha,1,4"),
   });
+
   await objPage
     .locator("#slot-series option[value='team']")
     .waitFor({ state: "attached" });
@@ -414,5 +420,83 @@ test("interleaved line tooltips retain row identity and group classes across swi
       "7",
     ]);
   }
+  assert.deepEqual(arrProblems, []);
+});
+
+test("uploads auto-group more than four series with distinct matching colors", async () => {
+  await objPage.locator("#input-file").setInputFiles({
+    name: "many-series.csv",
+    mimeType: "text/csv",
+    buffer: Buffer.from(
+      "x,y,group\n1,10,A\n2,11,A\n3,12,B\n4,13,B\n5,14,C\n6,15,C\n7,16,D\n8,17,D\n9,18,E\n10,19,E",
+    ),
+  });
+  await objPage.waitForFunction(
+    () => document.querySelector("#slot-series")?.value === "group",
+  );
+  assert.equal(await objPage.locator("polyline.line").count(), 5);
+  assert.equal(await objPage.locator("#legend li").count(), 5);
+
+  const arrSeriesColors = [];
+  for (let numSeries = 0; numSeries < 5; numSeries += 1) {
+    const strColor = await objPage
+      .locator(`circle.point.series-${numSeries}`)
+      .first()
+      .evaluate((objEl) => getComputedStyle(objEl).fill);
+    arrSeriesColors.push(strColor);
+    assert.equal(
+      await objPage
+        .locator("#legend .swatch")
+        .nth(numSeries)
+        .evaluate((objEl) => getComputedStyle(objEl).backgroundColor),
+      strColor,
+    );
+  }
+  assert.equal(new Set(arrSeriesColors).size, 5);
+  assert.deepEqual(arrProblems, []);
+});
+
+test("limits selected series to eight without a popup", async () => {
+  const fnCsvWithSeries = (numCount) =>
+    [
+      "x,y,group",
+      ...Array.from({ length: numCount }, (_, numIndex) => {
+        const strGroup = `group-${numIndex}`;
+        const numX = numIndex * 2 + 1;
+        return `${numX},${numIndex},${strGroup}\n${numX + 1},${numIndex + 1},${strGroup}`;
+      }),
+    ].join("\n");
+
+  await objPage.locator("#input-file").setInputFiles({
+    name: "eight-series.csv",
+    mimeType: "text/csv",
+    buffer: Buffer.from(fnCsvWithSeries(8)),
+  });
+  await objPage.waitForFunction(
+    () =>
+      document.querySelector("#slot-series")?.value === "group" &&
+      document.querySelectorAll("polyline.line").length === 8,
+  );
+  assert.equal(await objPage.locator("#stage-canvas svg").count(), 1);
+
+  await objPage.locator("#input-file").setInputFiles({
+    name: "nine-series.csv",
+    mimeType: "text/csv",
+    buffer: Buffer.from(fnCsvWithSeries(9)),
+  });
+  await objPage.waitForFunction(
+    () => document.querySelector("#slot-series")?.value === "group",
+  );
+  await objPage.getByText("Layout can't build this chart").waitFor();
+  assert.deepEqual(arrDialogs, []);
+  assert.match(
+    await objPage.locator("#stage-canvas").innerText(),
+    /A maximum of 8 series is allowed/,
+  );
+  assert.equal(await objPage.locator("#stage-canvas svg").count(), 0);
+  assert.match(
+    await objPage.locator(".dataset-about").first().innerText(),
+    /18 rows and 3 columns/,
+  );
   assert.deepEqual(arrProblems, []);
 });

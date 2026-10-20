@@ -34,14 +34,14 @@ Then open `/web/` on the port it prints. `python3 -m http.server` from the repo 
 
 Use **Upload a CSV** in the Data panel, or drop a file anywhere on the page. The file is read in the browser and never sent anywhere. It goes through the same `parseCsv`, so bad rows show the same error view as `broken.csv`. The page picks a starting chart from the column types (`guessSpec` in `datasets.js`), and you can change it from there. Files up to 5 MB; uploading a file with the same name replaces it.
 
-Automatic setup needs two distinct numeric columns. With fewer, an axis stays unselected and the page explains the requirement. You may explicitly choose the same numeric column for both axes. Valid X/Y/series choices, including series None, survive chart switches.
+Automatic setup needs two distinct numeric columns. With fewer, an axis stays unselected and the page explains the requirement. A category column with at least two distinct values is automatically grouped. Charts support at most eight selected series; choosing a series column with more values shows an error without removing rows from the parsed data. You may explicitly choose the same numeric column for both axes. Valid X/Y/series choices, including series None, survive chart switches.
 
 ## How the page styles a Scene
 
 Layout and chart types set `strClass`; `style.css` gives them color.
 
 - Any `circle` or `polyline` is drawn as a data mark in series color, unless its class is `grid`, `axis` or `tick`.
-- `series-0` to `series-3` pick the series color. Without one, a mark uses the first color.
+- Series 0–3 use the theme colors; additional series get deterministic generated colors. Without a series class, a mark uses the first color.
 - Text classes: `title`, `axis-label`, `tick-label`. Other text gets the default label style.
 
 ## Open questions for the module owners

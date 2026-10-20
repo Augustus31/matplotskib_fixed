@@ -91,6 +91,7 @@ export const DEFAULTS = Object.freeze({
  * @property {number} numY
  * @property {string} strText
  * @property {"start" | "middle" | "end"} strAnchor
+ * @property {number} [numRotation] rotation in degrees around the text position
  * @property {string} strClass
  */
 

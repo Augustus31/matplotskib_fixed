@@ -67,6 +67,28 @@ test("renders text with its anchor", () => {
   );
 });
 
+test("renders rotated text around its position", () => {
+  const objScene = {
+    numWidth: 600,
+    numHeight: 400,
+    arrItems: [
+      {
+        strKind: "text",
+        numX: 12,
+        numY: 200,
+        strText: "bugs",
+        strAnchor: "middle",
+        strClass: "axis-label",
+        numRotation: -90,
+      },
+    ],
+  };
+  assert.equal(
+    renderSvg(objScene),
+    `${STR_OPEN}<text x="12" y="200" text-anchor="middle" transform="rotate(-90 12 200)" class="axis-label">bugs</text></svg>`,
+  );
+});
+
 test("keeps item order", () => {
   const objScene = {
     numWidth: 600,

@@ -66,9 +66,13 @@ function renderPolyline(objPolyline) {
  * @returns {string}
  */
 function renderText(objText) {
+  const strTransform =
+    objText.numRotation === undefined
+      ? ""
+      : ` transform="rotate(${formatNumber(objText.numRotation)} ${formatNumber(objText.numX)} ${formatNumber(objText.numY)})"`;
   return (
     `<text x="${formatNumber(objText.numX)}" y="${formatNumber(objText.numY)}"` +
-    ` text-anchor="${escapeXml(objText.strAnchor)}" class="${escapeXml(objText.strClass)}">` +
+    ` text-anchor="${escapeXml(objText.strAnchor)}"${strTransform} class="${escapeXml(objText.strClass)}">` +
     `${escapeXml(objText.strText)}</text>`
   );
 }

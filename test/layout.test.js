@@ -86,6 +86,29 @@ test("builds a scene with axes first and the chart's marks after", () => {
     "bugs",
     "day",
   ]);
+  const arrAxisLines = withClass(objScene.arrItems, "axis").map(
+    (objItem) => /** @type {{arrPoints: number[][]}} */ (objItem).arrPoints,
+  );
+  const objXLabel = withClass(objScene.arrItems, "axis-label")[1];
+  const objYLabel = withClass(objScene.arrItems, "axis-label")[0];
+  const objTextX = /** @type {import("../src/contracts.js").SceneText} */ (
+    objXLabel
+  );
+  const objTextY = /** @type {import("../src/contracts.js").SceneText} */ (
+    objYLabel
+  );
+  assert.equal(
+    objTextX.numX,
+    (arrAxisLines[0][0][0] + arrAxisLines[0][1][0]) / 2,
+  );
+  assert.equal(objTextX.strAnchor, "middle");
+  assert.equal(objTextY.numX, 12);
+  assert.equal(
+    objTextY.numY,
+    (arrAxisLines[1][0][1] + arrAxisLines[1][1][1]) / 2,
+  );
+  assert.equal(objTextY.strAnchor, "middle");
+  assert.equal(objTextY.numRotation, -90);
 });
 
 test("draws a gridline for each y tick and a vertical guide at each x tick", () => {

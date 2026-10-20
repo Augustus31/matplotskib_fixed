@@ -166,9 +166,10 @@ function line(numX1, numY1, numX2, numY2, strClass) {
  * @param {string} strText
  * @param {"start" | "middle" | "end"} strAnchor
  * @param {string} strClass
+ * @param {number} [numRotation]
  * @returns {SceneItem}
  */
-function text(numX, numY, strText, strAnchor, strClass) {
+function text(numX, numY, strText, strAnchor, strClass, numRotation) {
   return {
     strKind: SCENE_KINDS.TEXT,
     numX,
@@ -176,6 +177,7 @@ function text(numX, numY, strText, strAnchor, strClass) {
     strText,
     strAnchor,
     strClass,
+    ...(numRotation === undefined ? {} : { numRotation }),
   };
 }
 
@@ -245,9 +247,21 @@ function buildGuides(objParse, objSpec, objFrame, objScales) {
   arrItems.push(
     line(numLeft, numBottom, numRight, numBottom, "axis"),
     line(numLeft, numTop, numLeft, numBottom, "axis"),
-    // SceneText can't rotate, so the y label sits above the axis, reading left to right.
-    text(numLeft, numTop - 12, strYField, "start", "axis-label"),
-    text(numRight, objFrame.numHeight - 8, strXField, "end", "axis-label"),
+    text(
+      NUM_LABEL_ROOM,
+      (numTop + numBottom) / 2,
+      strYField,
+      "middle",
+      "axis-label",
+      -90,
+    ),
+    text(
+      (numLeft + numRight) / 2,
+      objFrame.numHeight - 8,
+      strXField,
+      "middle",
+      "axis-label",
+    ),
   );
   if (objSpec.strTitle) {
     arrItems.push(text(numLeft, 26, objSpec.strTitle, "start", "title"));

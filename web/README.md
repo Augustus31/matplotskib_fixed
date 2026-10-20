@@ -48,4 +48,4 @@ Layout and chart types set `strClass`; `style.css` gives them color.
 
 1. **Tooltip row mapping.** Both charts emit one circle per original row. Line circles carry `line-point` and are invisible tooltip targets; only the connecting polyline vertices are sorted. Preserve circle row order and series classes when changing either builder.
 2. **List charts.** The registry has no list call, so the chart picker hard-codes `["scatter", "line"]` in `web/pipeline.js`.
-3. **Text.** `SceneText` has no rotation or vertical alignment. The y-axis label sits horizontally above the axis, and labels are nudged down 4px to sit centered.
+3. **Text.** `SceneText` supports rotation but has no vertical alignment. The y-axis label is rotated vertically beside the axis; labels are nudged down 4px to sit centered.

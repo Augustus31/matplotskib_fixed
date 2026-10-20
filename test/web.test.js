@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import { guessSpec } from "../web/datasets.js";
 import { layout, parse, renderSvg } from "../web/pipeline.js";
+import { getSeriesColor } from "../web/series-colors.js";
 
 /**
  * @param {string} strPath path from the repo root
@@ -84,6 +85,25 @@ test("an upload with two numbers and a few categories starts as a line per serie
   });
 });
 
+test("an upload with more than four repeated categories starts grouped", () => {
+  const objParse = parse(
+    "x,y,group\n1,10,A\n2,11,A\n3,12,B\n4,13,B\n5,14,C\n6,15,C\n7,16,D\n8,17,D\n9,18,E\n10,19,E",
+  );
+  assert.deepEqual(guessSpec(objParse), {
+    strChart: "line",
+    objFields: { x: "x", y: "y", series: "group" },
+    strTitle: "",
+  });
+});
+
+test("series colors continue deterministically beyond the four theme colors", () => {
+  assert.equal(getSeriesColor(0), "var(--s1)");
+  assert.equal(getSeriesColor(3), "var(--s4)");
+  assert.match(getSeriesColor(4), /^hsl\(/);
+  assert.notEqual(getSeriesColor(4), getSeriesColor(5));
+  assert.equal(getSeriesColor(4), getSeriesColor(4));
+});
+
 test("an upload with only number columns starts as a scatter", () => {
   const objParse = parse("height,weight\n170,65\n182,80\n165,58");
   assert.equal(guessSpec(objParse).strChart, "scatter");
@@ -99,9 +119,13 @@ test("an upload with one numeric column leaves the second axis unselected", () =
   });
 });
 
-test("a category with a value per row is not used as a series", () => {
+test("a category with a value per row can be used as a series", () => {
   const objParse = parse("name,a,b\nw,1,2\nx,3,4\ny,5,6\nz,7,8\nv,9,10");
-  assert.equal(guessSpec(objParse).strChart, "scatter");
+  assert.deepEqual(guessSpec(objParse), {
+    strChart: "line",
+    objFields: { x: "a", y: "b", series: "name" },
+    strTitle: "",
+  });
 });
 
 test("an upload with no number column leaves the slots empty", () => {

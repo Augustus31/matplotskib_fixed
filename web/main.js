@@ -3,6 +3,7 @@
 
 import { COLUMN_TYPES, DEFAULTS, SCENE_KINDS } from "../src/contracts.js";
 import { ARR_DATASETS, guessSpec, loadRaw } from "./datasets.js";
+import { getSeriesColor } from "./series-colors.js";
 import {
   ARR_CHART_NAMES,
   OBJ_STAGE_STATUS,
@@ -40,6 +41,7 @@ const OBJ_TABS = {
 
 const NUM_HOVER_RADIUS = 18;
 const NUM_MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
+const NUM_MAX_SERIES = 8;
 /** Most files kept in the data list, built-in or uploaded; the oldest is dropped past this. */
 const NUM_MAX_DATASETS = 5;
 const STR_PIPELINE_KEY = "matplotskib.showPipeline";
@@ -172,22 +174,32 @@ function run() {
   let objScene = null;
   let strLayoutError = "";
   if (objParse.arrErrors.length === 0) {
-    try {
-      objScene = layout(objParse, objSpec);
-    } catch (objError) {
-      strLayoutError = /** @type {Error} */ (objError).message;
-      if (
-        ["x", "y"].some(
-          (strAxis) =>
-            strLayoutError ===
-            `${objState.strChart} needs a column for "${strAxis}"`,
-        ) &&
-        objParse.arrColumns.filter(
-          (objCol) => objCol.strType === COLUMN_TYPES.NUMBER,
-        ).length < 2
-      ) {
-        strLayoutError =
-          "X and Y axes require numeric columns. Category columns can only be used for series.";
+    const strSeriesField = objSpec.objFields.series;
+    const numSeries = strSeriesField
+      ? new Set(
+          objParse.arrRows.map((objRow) => String(objRow[strSeriesField])),
+        ).size
+      : 0;
+    if (numSeries > NUM_MAX_SERIES) {
+      strLayoutError = `A maximum of ${NUM_MAX_SERIES} series is allowed; "${strSeriesField}" has ${numSeries}.`;
+    } else {
+      try {
+        objScene = layout(objParse, objSpec);
+      } catch (objError) {
+        strLayoutError = /** @type {Error} */ (objError).message;
+        if (
+          ["x", "y"].some(
+            (strAxis) =>
+              strLayoutError ===
+              `${objState.strChart} needs a column for "${strAxis}"`,
+          ) &&
+          objParse.arrColumns.filter(
+            (objCol) => objCol.strType === COLUMN_TYPES.NUMBER,
+          ).length < 2
+        ) {
+          strLayoutError =
+            "X and Y axes require numeric columns. Category columns can only be used for series.";
+        }
       }
     }
   }
@@ -605,7 +617,7 @@ function renderStage() {
     objLegend.innerHTML = arrSeries
       .map(
         (strName, numIndex) =>
-          `<li><span class="swatch series-${numIndex}" aria-hidden="true"></span>${escapeHtml(strName)}</li>`,
+          `<li><span class="swatch series-${numIndex}" style="--series: ${getSeriesColor(numIndex)}" aria-hidden="true"></span>${escapeHtml(strName)}</li>`,
       )
       .join("");
     objLegend.hidden = arrSeries.length < 2;
@@ -614,6 +626,17 @@ function renderStage() {
   }
   const objSvg = objCanvas.querySelector("svg");
   if (objSvg) {
+    for (const objMark of objSvg.querySelectorAll("[class]")) {
+      const strSeriesClass = [...objMark.classList].find((strClass) =>
+        /^series-\d+$/.test(strClass),
+      );
+      if (strSeriesClass) {
+        objMark.style.setProperty(
+          "--series",
+          getSeriesColor(Number(strSeriesClass.slice("series-".length))),
+        );
+      }
+    }
     objSvg.setAttribute("role", "img");
     objSvg.setAttribute(
       "aria-label",
